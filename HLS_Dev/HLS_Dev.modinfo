@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Mod id="e8b1b318-ff13-4ef1-a9b9-5dbfd7334a1d" version="1">
+  <Properties>
+    <Name>Hero Lifespans Spike Tools v0.0.0.1</Name>
+    <Teaser>Developer tools for the Hero Lifespans engine spikes.</Teaser>
+    <Description>Version 0.0.0.1. Testing only. Open the HLS DEV button or press Ctrl+Shift+D. Run All Spikes logs source-backed reads and outstanding runtime checks. Experimental setup, extension and removal probes change a disposable test game. Setup verifies whether generic unit creation registers hero claims; a failed partial setup requires a new game. Requires Gathering Storm, the Babylon Pack and Heroes &amp; Legends. Multiplayer and safe add/remove remain unverified.</Description>
+    <Authors>ThePotatoTurtle</Authors>
+    <AffectsSavedGames>0</AffectsSavedGames>
+    <CompatibleVersions>2.0</CompatibleVersions>
+  </Properties>
+  <Dependencies>
+    <Mod id="4873eb62-8ccc-4574-b784-dda455e74e68" title="Expansion: Gathering Storm" />
+    <Mod id="8424840C-92EF-4426-A9B4-B4E0CB818049" title="Babylon Pack" />
+  </Dependencies>
+  <ActionCriteria>
+    <Criteria id="HLS_DEV_HEROES">
+      <RuleSetInUse>RULESET_EXPANSION_2</RuleSetInUse>
+      <ConfigurationValueMatches>
+        <Group>Game</Group>
+        <ConfigurationId>GAMEMODE_HEROES</ConfigurationId>
+        <Value>1</Value>
+      </ConfigurationValueMatches>
+    </Criteria>
+  </ActionCriteria>
+  <InGameActions>
+    <ImportFiles id="HLS_DEV_Imports" criteria="HLS_DEV_HEROES">
+      <File>UI/HLS_Probe.lua</File>
+    </ImportFiles>
+    <AddGameplayScripts id="HLS_DEV_Gameplay" criteria="HLS_DEV_HEROES">
+      <Properties><LoadOrder>14000</LoadOrder></Properties>
+      <File>Scripts/HLS_Dev_Gameplay.lua</File>
+    </AddGameplayScripts>
+    <AddUserInterfaces id="HLS_DEV_UI" criteria="HLS_DEV_HEROES">
+      <Properties><Context>InGame</Context><LoadOrder>14000</LoadOrder></Properties>
+      <File>UI/HLS_Dev_Panel.xml</File>
+    </AddUserInterfaces>
+  </InGameActions>
+  <Files>
+    <File>Scripts/HLS_Dev_Gameplay.lua</File>
+    <File>UI/HLS_Dev_Panel.lua</File>
+    <File>UI/HLS_Dev_Panel.xml</File>
+    <File>UI/HLS_Probe.lua</File>
+  </Files>
+</Mod>

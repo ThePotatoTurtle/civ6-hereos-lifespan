@@ -1,0 +1,433 @@
+{
+  ":BuildInstanceForControl": [
+    {
+      "source": "Base/Assets/UI/Panels/UnitPanel.lua",
+      "line": 905,
+      "excerpt": "ContextPtr:BuildInstanceForControl( \"BuildActionInstance\", instance, buildColumnInstance[slotName]);",
+      "context": "UI exact selected-unit timer"
+    }
+  ],
+  ":CalculateSize": [
+    {
+      "source": "Base/Assets/UI/Panels/UnitPanel.lua",
+      "line": 763,
+      "excerpt": "Controls.PrimaryArtStack:CalculateSize();",
+      "context": "UI exact selected-unit timer"
+    }
+  ],
+  ":FindID": [
+    {
+      "source": "DLC/Babylon/UI/Additions/GreatPeopleHeroPanel.lua",
+      "line": 161,
+      "excerpt": "local pHeroCity:object = pPlayerCities:FindID(cityID.id);",
+      "context": "UI hero state and recall"
+    }
+  ],
+  ":GetCapitalCity": [
+    {
+      "source": "C:\\Users\\goldf\\OneDrive\\OneNote\\My Games\\Sid Meier's Civilization VI\\Mods\\ABN_Dev\\UI\\ABN_Dev_Panel.lua",
+      "line": 122,
+      "excerpt": "local ok, c = pcall(function() return Players[pid]:GetCities():GetCapitalCity() end)",
+      "context": "Installed development UI pattern",
+      "root": "absolute"
+    }
+  ],
+  ":GetCities": [
+    {
+      "source": "DLC/Babylon/UI/Additions/GreatPeopleHeroPanel.lua",
+      "line": 160,
+      "excerpt": "local pPlayerCities:object = Players[claimedByPlayer]:GetCities();",
+      "context": "UI hero state and recall"
+    }
+  ],
+  ":GetDiplomacy": [
+    {
+      "source": "DLC/Babylon/UI/Additions/HeroesPopup.lua",
+      "line": 131,
+      "excerpt": "local pPlayerDiplomacy:object = Players[ePlayer]:GetDiplomacy();",
+      "context": "UI claimant privacy"
+    }
+  ],
+  ":GetHeroClaimPlayer": [
+    {
+      "source": "DLC/Babylon/UI/Additions/GreatPeopleHeroPanel.lua",
+      "line": 125,
+      "excerpt": "local claimedByPlayer:number = pGameHeroes:GetHeroClaimPlayer(kHeroDef.Index);",
+      "context": "UI hero state and recall"
+    }
+  ],
+  ":GetHeroOriginCityID": [
+    {
+      "source": "DLC/Babylon/UI/Additions/GreatPeopleHeroPanel.lua",
+      "line": 159,
+      "excerpt": "local cityID:table = pGameHeroes:GetHeroOriginCityID(kHeroDef.Index);",
+      "context": "UI hero state and recall"
+    }
+  ],
+  ":GetID": [
+    {
+      "source": "Base/Assets/UI/Panels/UnitPanel.lua",
+      "line": 2261,
+      "excerpt": "kSubjectData.UnitID\t\t\t\t\t\t= unit:GetID();",
+      "context": "UI exact selected-unit timer"
+    }
+  ],
+  ":GetKey": [
+    {
+      "source": "DLC/Babylon/UI/Additions/HeroesPopup.lua",
+      "line": 61,
+      "excerpt": "if uiMsg == KeyEvents.KeyUp and pInputStruct:GetKey() == Keys.VK_ESCAPE then",
+      "context": "UI claimant privacy"
+    }
+  ],
+  ":GetLifespan": [
+    {
+      "source": "Debug/Heroes.ltp",
+      "line": 18,
+      "excerpt": "local int iLifespan = pUnit:GetLifespan();",
+      "context": "Tuner only; cross-context availability remains UNVERIFIED"
+    }
+  ],
+  ":GetMessageType": [
+    {
+      "source": "DLC/Babylon/UI/Additions/HeroesPopup.lua",
+      "line": 60,
+      "excerpt": "local uiMsg :number = pInputStruct:GetMessageType();",
+      "context": "UI claimant privacy"
+    }
+  ],
+  ":GetPlayerName": [
+    {
+      "source": "DLC/Babylon/UI/Additions/HeroesPopup.lua",
+      "line": 134,
+      "excerpt": "sEventDescription = sEventDescription .. \"[NEWLINE][NEWLINE]\" .. Locale.Lookup(\"LOC_DISCOVER_CLAIMED_HERO_HELP\", pPlayerConfig:GetPlayerName());",
+      "context": "UI claimant privacy"
+    }
+  ],
+  ":GetProperty": [
+    {
+      "source": "Base/Assets/UI/Panels/UnitPanel.lua",
+      "line": 2269,
+      "excerpt": "kSubjectData.Lifespan\t\t\t\t\t= unit:GetProperty(UnitPropertyKeys.LifespanRemaining);",
+      "context": "UI exact selected-unit timer"
+    }
+  ],
+  ":GetSizeX": [
+    {
+      "source": "DLC/Babylon/UI/Additions/GreatPeopleHeroPanel.lua",
+      "line": 295,
+      "excerpt": "LuaEvents.GreatPeopleHeroPanel_SizeChanged(Controls.HeroStack:GetSizeX());",
+      "context": "UI hero state and recall"
+    }
+  ],
+  ":GetType": [
+    {
+      "source": "DLC/Babylon/UI/Additions/GreatPeopleHeroPanel.lua",
+      "line": 141,
+      "excerpt": "if GameInfo.Units[pUnit:GetType()].UnitType == kHeroDef.UnitType then",
+      "context": "UI hero state and recall"
+    }
+  ],
+  ":GetUnits": [
+    {
+      "source": "DLC/Babylon/UI/Additions/GreatPeopleHeroPanel.lua",
+      "line": 139,
+      "excerpt": "local pPlayerUnits:table = pPlayer:GetUnits();",
+      "context": "UI hero state and recall"
+    }
+  ],
+  ":GetX": [
+    {
+      "source": "DLC/Babylon/UI/Additions/GreatPeopleHeroPanel.lua",
+      "line": 194,
+      "excerpt": "UI.LookAtPlotScreenPosition( pUnit:GetX(), pUnit:GetY(), 0.5, 0.5 );",
+      "context": "UI hero state and recall"
+    }
+  ],
+  ":GetY": [
+    {
+      "source": "DLC/Babylon/UI/Additions/GreatPeopleHeroPanel.lua",
+      "line": 194,
+      "excerpt": "UI.LookAtPlotScreenPosition( pUnit:GetX(), pUnit:GetY(), 0.5, 0.5 );",
+      "context": "UI hero state and recall"
+    }
+  ],
+  ":HasMet": [
+    {
+      "source": "DLC/Babylon/UI/Additions/HeroesPopup.lua",
+      "line": 132,
+      "excerpt": "if pPlayerDiplomacy and pPlayerDiplomacy:HasMet(eClaimedByPlayer) then",
+      "context": "UI claimant privacy"
+    }
+  ],
+  ":IsControlDown": [
+    {
+      "source": "C:\\Users\\goldf\\OneDrive\\OneNote\\My Games\\Sid Meier's Civilization VI\\Mods\\ABN_Dev\\UI\\ABN_Dev_Panel.lua",
+      "line": 487,
+      "excerpt": "if key == Keys.D and pInput:IsControlDown() and pInput:IsShiftDown() then",
+      "context": "Installed development UI pattern",
+      "root": "absolute"
+    }
+  ],
+  ":IsHero": [
+    {
+      "source": "Debug/Heroes.ltp",
+      "line": 129,
+      "excerpt": "if (unit:IsHero()) then",
+      "context": "Tuner only; cross-context availability remains UNVERIFIED"
+    }
+  ],
+  ":IsHeroDiscovered": [
+    {
+      "source": "DLC/Babylon/UI/Additions/GreatPeopleHeroPanel.lua",
+      "line": 31,
+      "excerpt": "if pGameHeroes:IsHeroDiscovered(Game.GetLocalPlayer(), row.Index) then",
+      "context": "UI hero state and recall"
+    }
+  ],
+  ":IsHuman": [
+    {
+      "source": "Base/Assets/UI/EndGame/EndGameMenu.lua",
+      "line": 854,
+      "excerpt": "if GameConfiguration.IsAnyMultiplayer() and pDefeatedPlayer:IsHuman() then",
+      "context": "UI generic game configuration"
+    }
+  ],
+  ":IsMajor": [
+    {
+      "source": "C:\\Users\\goldf\\OneDrive\\OneNote\\My Games\\Sid Meier's Civilization VI\\Mods\\ABN_Dev\\UI\\ABN_Dev_Panel.lua",
+      "line": 166,
+      "excerpt": "local ok, isAI = pcall(function() return pid ~= me and Players[pid]:IsMajor() and not Players[pid]:IsHuman() end)",
+      "context": "Installed development UI pattern",
+      "root": "absolute"
+    }
+  ],
+  ":IsShiftDown": [
+    {
+      "source": "C:\\Users\\goldf\\OneDrive\\OneNote\\My Games\\Sid Meier's Civilization VI\\Mods\\ABN_Dev\\UI\\ABN_Dev_Panel.lua",
+      "line": 487,
+      "excerpt": "if key == Keys.D and pInput:IsControlDown() and pInput:IsShiftDown() then",
+      "context": "Installed development UI pattern",
+      "root": "absolute"
+    }
+  ],
+  ":LookUpControl": [
+    {
+      "source": "C:\\Users\\goldf\\OneDrive\\OneNote\\My Games\\Sid Meier's Civilization VI\\Mods\\ABN_Dev\\UI\\ABN_Dev_Panel.lua",
+      "line": 308,
+      "excerpt": "pcall(function() target = ContextPtr:LookUpControl(\"/InGame/CityPanel/ActionStack\") end)",
+      "context": "Installed development UI pattern",
+      "root": "absolute"
+    }
+  ],
+  ":Members": [
+    {
+      "source": "DLC/Babylon/UI/Additions/GreatPeopleHeroPanel.lua",
+      "line": 140,
+      "excerpt": "for i, pUnit in pPlayerUnits:Members() do",
+      "context": "UI hero state and recall"
+    }
+  ],
+  ":RegisterCallback": [
+    {
+      "source": "DLC/Babylon/UI/Additions/GreatPeopleHeroPanel.lua",
+      "line": 117,
+      "excerpt": "kHeroInstance.CivilopediaButton:RegisterCallback( Mouse.eLClick, function() OpenCivilopediaForHero(kHeroDef.UnitType); end );",
+      "context": "UI hero state and recall"
+    }
+  ],
+  ":SetDisabled": [
+    {
+      "source": "DLC/Babylon/UI/Additions/GreatPeopleHeroPanel.lua",
+      "line": 224,
+      "excerpt": "kHeroInstance.FaithRecallButton:SetDisabled(false);",
+      "context": "UI hero state and recall"
+    }
+  ],
+  ":SetHide": [
+    {
+      "source": "DLC/Babylon/UI/Additions/GreatPeopleHeroPanel.lua",
+      "line": 118,
+      "excerpt": "kHeroInstance.CivilopediaButton:SetHide(false);",
+      "context": "UI hero state and recall"
+    }
+  ],
+  ":SetInputHandler": [
+    {
+      "source": "DLC/Babylon/UI/Additions/HeroesPopup.lua",
+      "line": 352,
+      "excerpt": "ContextPtr:SetInputHandler( OnInputHandler, true );",
+      "context": "UI claimant privacy"
+    }
+  ],
+  ":SetLifespan": [
+    {
+      "source": "Debug/Heroes.ltp",
+      "line": 19,
+      "excerpt": "pUnit:SetLifespan(iLifespan + 1);",
+      "context": "Tuner only; cross-context availability remains UNVERIFIED"
+    }
+  ],
+  ":SetSizeX": [
+    {
+      "source": "Base/Assets/UI/Panels/UnitPanel.lua",
+      "line": 760,
+      "excerpt": "m_currentIconGroup.Top:SetSizeX( artWidth );",
+      "context": "UI exact selected-unit timer"
+    }
+  ],
+  ":SetText": [
+    {
+      "source": "DLC/Babylon/UI/Additions/GreatPeopleHeroPanel.lua",
+      "line": 46,
+      "excerpt": "kHeroInstance.IndividualName:SetText(sHeroName);",
+      "context": "UI hero state and recall"
+    }
+  ],
+  ":SetToolTipString": [
+    {
+      "source": "DLC/Babylon/UI/Additions/GreatPeopleHeroPanel.lua",
+      "line": 155,
+      "excerpt": "kHeroInstance.LookAtButton:SetToolTipString(Locale.Lookup(\"LOC_GREAT_PEOPLE_HEROES_LOOK_AT_HERO_TT\"));",
+      "context": "UI hero state and recall"
+    }
+  ],
+  "CityManager.CanStartCommand": [
+    {
+      "source": "DLC/Babylon/UI/Additions/GreatPeopleHeroPanel.lua",
+      "line": 213,
+      "excerpt": "if CityManager.CanStartCommand( pCity, CityCommandTypes.PURCHASE, true, tParameters, false ) then",
+      "context": "UI hero state and recall"
+    }
+  ],
+  "Events.LocalPlayerTurnBegin.Add": [
+    {
+      "source": "Base/Assets/UI/Popups/GreatPeoplePopup.lua",
+      "line": 1213,
+      "excerpt": "Events.LocalPlayerTurnBegin.Add( OnLocalPlayerTurnBegin );",
+      "context": "Shipped UI turn callback"
+    }
+  ],
+  "Game.GetCurrentGameTurn": [
+    {
+      "source": "Base/Assets/UI/Panels/UnitPanel.lua",
+      "line": 2158,
+      "excerpt": "kSubjectData.SpyRemainingTurns = pUnit:GetSpyOperationEndTurn() - Game.GetCurrentGameTurn();",
+      "context": "UI exact selected-unit timer"
+    }
+  ],
+  "Game.GetHeroesManager": [
+    {
+      "source": "DLC/Babylon/UI/Additions/GreatPeopleHeroPanel.lua",
+      "line": 29,
+      "excerpt": "local pGameHeroes:object = Game.GetHeroesManager();",
+      "context": "UI hero state and recall"
+    }
+  ],
+  "Game.GetLocalPlayer": [
+    {
+      "source": "DLC/Babylon/UI/Additions/GreatPeopleHeroPanel.lua",
+      "line": 31,
+      "excerpt": "if pGameHeroes:IsHeroDiscovered(Game.GetLocalPlayer(), row.Index) then",
+      "context": "UI hero state and recall"
+    }
+  ],
+  "Game.GetPlayers": [
+    {
+      "source": "Debug/Heroes.ltp",
+      "line": 123,
+      "excerpt": "local players = Game.GetPlayers({Alive = true, Major = true});",
+      "context": "Tuner only; cross-context availability remains UNVERIFIED"
+    }
+  ],
+  "GameConfiguration.GetValue": [
+    {
+      "source": "Base/Assets/UI/EndGame/EndGameMenu.lua",
+      "line": 271,
+      "excerpt": "local noExtendedGame = GameConfiguration.GetValue(\"NO_EXTENDED_GAME\");",
+      "context": "UI generic game configuration"
+    }
+  ],
+  "GameEvents.HLS_Dev_Request.Add": [
+    {
+      "source": "DLC/BlackDeathScenario/Scripts/BlackDeathScenario.lua",
+      "line": 66,
+      "excerpt": "GameEvents.EventPopupChoice.Add( OnEventPopupChoice );\t-- handler is in the support file.",
+      "context": "Shipped custom gameplay event registration convention; HLS event name is project-owned"
+    }
+  ],
+  "GameInfo.HeroClasses": [
+    {
+      "source": "DLC/Babylon/UI/Additions/GreatPeopleHeroPanel.lua",
+      "line": 30,
+      "excerpt": "for row in GameInfo.HeroClasses() do",
+      "context": "UI hero state and recall"
+    }
+  ],
+  "Locale.Lookup": [
+    {
+      "source": "DLC/Babylon/UI/Additions/GreatPeopleHeroPanel.lua",
+      "line": 58,
+      "excerpt": "pLifespanInst.NameText:SetText(Locale.Lookup(\"LOC_HUD_UNIT_PANEL_LIFESPAN\"));",
+      "context": "UI hero state and recall"
+    }
+  ],
+  "LuaEvents.LaunchBar_Resize": [
+    {
+      "source": "C:\\Users\\goldf\\OneDrive\\OneNote\\My Games\\Sid Meier's Civilization VI\\Mods\\ABN_Dev\\UI\\ABN_Dev_Panel.lua",
+      "line": 512,
+      "excerpt": "LuaEvents.LaunchBar_Resize(buttonStack:GetSizeX())",
+      "context": "Installed development UI pattern",
+      "root": "absolute"
+    }
+  ],
+  "UI.RequestPlayerOperation": [
+    {
+      "source": "DLC/BlackDeathScenario/UI/BlackDeathScenario_PopupHandler.lua",
+      "line": 28,
+      "excerpt": "UI.RequestPlayerOperation(Game.GetLocalPlayer(), PlayerOperations.EXECUTE_SCRIPT, kParameters);",
+      "context": "Shipped synchronized UI request"
+    }
+  ],
+  "UnitManager.GetUnitTypeBaseLifespan": [
+    {
+      "source": "DLC/Babylon/UI/Additions/HeroesSupport.lua",
+      "line": 81,
+      "excerpt": "tStats.Lifespan = UnitManager.GetUnitTypeBaseLifespan(pUnitInfo.Index);",
+      "context": "UI base lifespan"
+    }
+  ],
+  "UnitManager.InitUnit": [
+    {
+      "source": "C:\\Users\\goldf\\OneDrive\\OneNote\\My Games\\Sid Meier's Civilization VI\\Mods\\ABN_Dev\\Scripts\\ABN_Dev_Gameplay.lua",
+      "line": 821,
+      "excerpt": "local ok, err = pcall(function() UnitManager.InitUnit(BARBARIAN_ID, \"UNIT_WARRIOR\", p:GetX(), p:GetY()) end)",
+      "context": "Installed generic InitUnit signature; hero registration is experimental",
+      "root": "absolute"
+    }
+  ],
+  "UnitManager.Kill": [
+    {
+      "source": "DLC/BlackDeathScenario/Scripts/BlackDeathScenario_UnitCommands.lua",
+      "line": 64,
+      "excerpt": "UnitManager.Kill(pUnit);",
+      "context": "Shipped gameplay unit removal"
+    }
+  ],
+  "UI.SelectUnit": [
+    {
+      "source": "DLC/Babylon/UI/Additions/GreatPeopleHeroPanel.lua",
+      "line": 195,
+      "excerpt": "UI.SelectUnit( pUnit );",
+      "context": "Shipped UI focuses and selects the exact hero unit"
+    }
+  ],
+  "UI.LookAtPlotScreenPosition": [
+    {
+      "source": "DLC/Babylon/UI/Additions/GreatPeopleHeroPanel.lua",
+      "line": 194,
+      "excerpt": "UI.LookAtPlotScreenPosition( pUnit:GetX(), pUnit:GetY(), 0.5, 0.5 );",
+      "context": "Shipped UI focuses and selects the exact hero unit"
+    }
+  ]
+}
