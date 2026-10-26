@@ -17,3 +17,5 @@ FIXPLAN_*
 INTERFACES.md
 TESTING_*
 API_EVIDENCE.md
+tests/
+tools/
