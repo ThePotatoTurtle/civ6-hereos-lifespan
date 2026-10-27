@@ -1,4 +1,4 @@
--- Hero Lifespans research probe. Reads engine state; never changes gameplay.
+-- Show Hero Lifespans research probe. Reads engine state; never changes gameplay.
 -- Evidence and the limits of each read are recorded in research/heroes.md.
 
 HLS_Probe = {};

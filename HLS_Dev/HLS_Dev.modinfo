@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Mod id="e8b1b318-ff13-4ef1-a9b9-5dbfd7334a1d" version="1">
   <Properties>
-    <Name>Hero Lifespans Spike Tools v0.0.0.1</Name>
-    <Teaser>Developer tools for the Hero Lifespans engine spikes.</Teaser>
+    <Name>Show Hero Lifespans Spike Tools v0.0.0.1</Name>
+    <Teaser>Developer tools for the Show Hero Lifespans engine spikes.</Teaser>
     <Description>Version 0.0.0.1. Testing only. Open the HLS DEV button or press Ctrl+Shift+D. Run All Spikes logs source-backed reads and outstanding runtime checks. Experimental setup, extension and removal probes change a disposable test game. Setup verifies whether generic unit creation registers hero claims; a failed partial setup requires a new game. Requires Gathering Storm, the Babylon Pack and Heroes &amp; Legends. Multiplayer and safe add/remove remain unverified.</Description>
     <Authors>ThePotatoTurtle</Authors>
     <AffectsSavedGames>0</AffectsSavedGames>

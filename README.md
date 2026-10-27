@@ -1,4 +1,4 @@
-# Hero Lifespans
+# Show Hero Lifespans
 
 This repository currently contains a development spike kit for Civilization VI. It checks whether a UI context can read every hero's actual remaining lifespan in Heroes & Legends. The finished Heroes screen extension has not been built.
 
