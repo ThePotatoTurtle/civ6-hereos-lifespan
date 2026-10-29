@@ -150,11 +150,12 @@ function Probe.RunAllSpikes()
     local snapshot = Probe.Snapshot();
     local report = { pass = 0, fail = 0, unverified = 0, snapshot = snapshot };
     print("[HLS][RUN] turn=" .. tostring(snapshot.turn) .. " localPlayer=" .. tostring(snapshot.localPlayer)
-        .. " modeEnabled=" .. tostring(snapshot.modeEnabled) .. " probeReadOnly=true; separate dev setup/buttons can change gameplay");
+        .. " modeEnabled=" .. tostring(snapshot.modeEnabled) .. " probeReadOnly=true; optional extension/removal buttons can change gameplay");
     for _, message in ipairs(snapshot.errors) do Log(report, "S1", "FAIL", message); end
-    local own, other, unmet = 0, 0, 0;
+    local own, other, unmet, fallen = 0, 0, 0, 0;
     for _, hero in ipairs(snapshot.heroes) do
         local context = Context(snapshot, hero);
+        if hero.state == "fallen" then fallen = fallen + 1; end
         if hero.state == "active" then
             if hero.owner == snapshot.localPlayer then own = own + 1;
             else other = other + 1; if not hero.ownerMet then unmet = unmet + 1; end end
@@ -180,9 +181,11 @@ function Probe.RunAllSpikes()
             context .. " engineBase=" .. tostring(hero.baseLifespan) .. " scope=base-read"
             .. " startingLifespan=unavailable bonusTurns=unavailable recallsUsed=unavailable error=" .. tostring(hero.baseError));
     end
-    Log(report, "S1", own > 0 and other > 0 and unmet > 0 and "PASS" or "UNVERIFIED",
-        "coverage own=" .. own .. " other=" .. other .. " unmet=" .. unmet
-        .. "; coverage depends on scenario setup, visual UnitPanel comparison and countdown still required");
+    Log(report, "S1", own > 0 and "PASS" or "UNVERIFIED",
+        "coverage own=" .. own .. "; scope=presence; visual UnitPanel comparison and countdown still required; no other owner required");
+    Log(report, "S1", other > 0 and "PASS" or "UNVERIFIED", "coverage other=" .. other);
+    Log(report, "S1", unmet > 0 and "PASS" or "UNVERIFIED", "coverage unmet=" .. unmet);
+    Log(report, "S2", fallen > 0 and "PASS" or "UNVERIFIED", "coverage fallen=" .. fallen);
     Log(report, "S2", "UNVERIFIED", "Historical death turn and other-owner recall eligibility have no verified getter; omitted");
     Log(report, "S3", "UNVERIFIED", "Game-speed scaling needs runs at two speeds; base is never compared with remaining lifespan");
     Log(report, "S4", "UNVERIFIED", "Save add/remove safety requires a separate runtime round trip; read-only code is not proof");
@@ -191,21 +194,29 @@ function Probe.RunAllSpikes()
     return report;
 end
 
-function Probe.StartChecker()
-    m_baseline = Probe.Snapshot();
-    print("[HLS][CHECK] baseline turn=" .. tostring(m_baseline.turn) .. " heroes=" .. #m_baseline.heroes);
+function Probe.StartChecker(snapshot)
+    m_baseline = nil;
+    snapshot = snapshot or Probe.Snapshot();
+    local active = 0;
+    for _, hero in ipairs(snapshot.heroes or {}) do
+        if hero.state == "active" then active = active + 1; end
+    end
+    if active == 0 then
+        print("[HLS][CHECK] UNVERIFIED no active heroes; checker remains unarmed; recruit a hero then Run All Spikes");
+        return nil;
+    end
+    m_baseline = snapshot;
+    print("[HLS][CHECK] baseline turn=" .. tostring(m_baseline.turn) .. " activeHeroes=" .. active);
     return m_baseline;
 end
 
 function Probe.CheckTurn()
+    if m_baseline == nil then
+        return { pass = 0, fail = 0, unverified = 0 };
+    end
     local current = Probe.Snapshot();
     local report = { pass = 0, fail = 0, unverified = 0, snapshot = current };
     for _, message in ipairs(current.errors) do Log(report, "S1", "FAIL", message); end
-    if m_baseline == nil then
-        m_baseline = current;
-        Log(report, "S1", "UNVERIFIED", "Countdown baseline created; end turn twice");
-        return report;
-    end
     local previous = {};
     for _, hero in ipairs(m_baseline.heroes) do previous[hero.heroIndex] = hero; end
     local delta = Number(current.turn) and Number(m_baseline.turn) and current.turn - m_baseline.turn or nil;

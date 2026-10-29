@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<Mod id="e8b1b318-ff13-4ef1-a9b9-5dbfd7334a1d" version="2">
+<Mod id="e8b1b318-ff13-4ef1-a9b9-5dbfd7334a1d" version="3">
   <Properties>
-    <Name>Show Hero Lifespans Spike Tools v0.0.0.2</Name>
+    <Name>Show Hero Lifespans Spike Tools v0.0.0.3</Name>
     <Teaser>Developer tools for the Show Hero Lifespans engine spikes.</Teaser>
-    <Description>Version 0.0.0.2. Testing only. Open the HLS DEV button or press Ctrl+Shift+D. The panel reports when Heroes &amp; Legends is off. Run All Spikes logs source-backed reads and outstanding runtime checks. Experimental setup creates test cities and Monuments, then tests built-in hero grants. Setup, extension and removal change a disposable test game; a failed partial setup requires a new game. Requires Gathering Storm and the Babylon Pack. Hero scenarios require Heroes &amp; Legends. Multiplayer and safe add/remove remain unverified.</Description>
+    <Description>Version 0.0.0.3. Testing only. Open the Hero Lifespan Spikes button or press Ctrl+Shift+D. The panel reports when Heroes &amp; Legends is off. Run All Spikes logs source-backed reads and outstanding runtime checks. Prepare one hero through normal gameplay: settle your capital, get a Monument and recruit a hero. Run All Spikes reads existing heroes and arms the turn checker only when an active hero exists. Extension and removal are optional probes that change a disposable test game. AI, unmet and fallen cases remain unverified until observed. Requires Gathering Storm and the Babylon Pack. Hero scenarios require Heroes &amp; Legends. Multiplayer and safe add/remove remain unverified.</Description>
     <Authors>ThePotatoTurtle</Authors>
     <AffectsSavedGames>0</AffectsSavedGames>
     <CompatibleVersions>2.0</CompatibleVersions>

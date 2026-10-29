@@ -18,7 +18,7 @@ The installer requires an explicit existing Mods folder and refuses to run while
 .\tools\install.ps1 -DevOnly -TargetModsPath 'C:\path\to\Civilization VI\Mods'
 ```
 
-Start a new game with the development kit enabled. Open its panel with Ctrl+Shift+D and click **Run All Spikes**. After exiting the game to the desktop, summarize the completed log:
+Start a new game with the development kit enabled and recruit one hero normally before running spikes. Open its panel with Ctrl+Shift+D and click **Run All Spikes**. After exiting the game to the desktop, summarize the completed log:
 
 ```powershell
 python tools/summarize_log.py 'C:\path\to\Lua.log'
