@@ -1,5 +1,5 @@
 -- Adapted from Babylon GreatPeopleHeroPanel.lua, Copyright 2020, Firaxis Games.
--- Show Hero Lifespans 0.1.0. Vanilla XML, parent tab and actions are retained.
+-- Show Hero Lifespans 0.1.1. Vanilla XML, parent tab and actions are retained.
 
 include("InstanceManager");
 include("HeroesSupport");
@@ -325,6 +325,7 @@ end
 
 -- ===========================================================================
 function Initialize()
+    print("[HLS][UI] Heroes panel loaded version=0.1.1");
     -- Sources: UnitPanel.lua:4225; ResearchChooser.lua:399,485; parent popup:1213.
     ContextPtr:SetRefreshHandler(HLS_OnDeferredRefresh);
     Events.LocalPlayerTurnBegin.Add(HLS_QueueRefresh);

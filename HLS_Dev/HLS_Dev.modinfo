@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Mod id="e8b1b318-ff13-4ef1-a9b9-5dbfd7334a1d" version="1">
   <Properties>
-    <Name>Show Hero Lifespans Spike Tools v0.1.0.1</Name>
+    <Name>Show Hero Lifespans Spike Tools v0.1.1.1</Name>
     <Teaser>Developer tools for the Show Hero Lifespans engine spikes.</Teaser>
-    <Description>Version 0.1.0.1. Testing only. Open the Hero Lifespan Spikes button or press Ctrl+Shift+D. The panel reports when Heroes &amp; Legends is off. Run All Spikes logs source-backed reads and outstanding runtime checks. Prepare one hero through normal gameplay: settle your capital, get a Monument and recruit a hero. Run All Spikes reads existing heroes and arms the turn checker only when an active hero exists. Extension and removal are optional probes that change a disposable test game. AI, unmet and fallen cases remain unverified until observed. Requires Gathering Storm and the Babylon Pack. Hero scenarios require Heroes &amp; Legends. Multiplayer and safe add/remove remain unverified.</Description>
+    <Description>Version 0.1.1.1. Testing only. Open Hero Lifespan Spikes or press Ctrl+Shift+D. Prepare a new hotseat game with 3 humans and 1 AI, Heroes &amp; Legends, and manually recruit one hero for each human. Visibility Check compares the production reader and presentation for the current human observer, including actual fog reads. Check each human before meeting, after Meet Humans 1 &amp; 2, and after Meet All + Relationships. Setup buttons change diplomacy through synchronized requests and validate the sorted roles. Run All Spikes retains the countdown checker. The unsupported +5 probe was removed because GetLifespan is unavailable in gameplay. Save/load and add/remove checks use manual instructions. Requires Show Hero Lifespans, Gathering Storm and the Babylon Pack. Hotseat runtime coverage remains unverified until observed.</Description>
     <Authors>ThePotatoTurtle</Authors>
     <AffectsSavedGames>0</AffectsSavedGames>
     <CompatibleVersions>2.0</CompatibleVersions>

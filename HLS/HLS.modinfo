@@ -3,7 +3,7 @@
   <Properties>
     <Name>Show Hero Lifespans</Name>
     <Teaser>See each claimed hero's remaining turns in the Heroes screen.</Teaser>
-    <Description>Version 0.1.0. Shows exact remaining turns for claimed heroes, with a red warning at 5 turns or fewer. Unmet owners appear as Unknown civ. Requires Gathering Storm, the Babylon Pack and Heroes &amp; Legends. Initial development build. Multiplayer, live layout and save add/remove testing remain unverified. Replaces the Heroes card Lua script; other replacements of that script may conflict.</Description>
+    <Description>Version 0.1.1. Shows exact remaining turns for claimed heroes, with a red warning at 5 turns or fewer. Unmet owners appear as Unknown civ. Requires Gathering Storm, the Babylon Pack and Heroes &amp; Legends. Initial development build. Multiplayer, live layout and save add/remove testing remain unverified. Replaces the Heroes card Lua script; other replacements of that script may conflict.</Description>
     <Authors>ThePotatoTurtle</Authors>
     <AffectsSavedGames>0</AffectsSavedGames>
     <CompatibleVersions>2.0</CompatibleVersions>

@@ -147,7 +147,7 @@ function Probe.RunAllSpikes()
     local snapshot = Probe.Snapshot();
     local report = { pass = 0, fail = 0, unverified = 0, snapshot = snapshot };
     print("[HLS][RUN] turn=" .. tostring(snapshot.turn) .. " localPlayer=" .. tostring(snapshot.localPlayer)
-        .. " modeEnabled=" .. tostring(snapshot.modeEnabled) .. " probeReadOnly=true; optional extension/removal buttons can change gameplay");
+        .. " modeEnabled=" .. tostring(snapshot.modeEnabled) .. " probeReadOnly=true; optional meeting/relationship buttons change diplomacy");
     for _, message in ipairs(snapshot.errors) do Log(report, "S1", "FAIL", message); end
     local own, other, unmet, fallen = 0, 0, 0, 0;
     for _, hero in ipairs(snapshot.heroes) do
@@ -242,6 +242,118 @@ function Probe.CheckTurn()
     m_baseline = current;
     print("[HLS][SUMMARY] countdown " .. report.pass .. " PASS, " .. report.fail .. " FAIL, " .. report.unverified .. " UNVERIFIED");
     return report;
+end
+
+-- The same ascending alive-major roster is independently validated by gameplay.
+-- EFV_Dev_Gameplay.lua:663-677; PlayersVisibility reads EFV_Tracker.lua:263,289.
+function Probe.HotseatRoles()
+    local humans, ais = {}, {};
+    local ok, err = pcall(function()
+        for id = 0, 63 do
+            local player = Players[id];
+            if player and player:IsAlive() and player:IsMajor() then
+                local list = player:IsHuman() and humans or ais;
+                list[#list + 1] = id;
+            end
+        end
+    end);
+    if not ok then return nil, "roster unavailable: " .. tostring(err); end
+    if #humans ~= 3 or #ais ~= 1 then return nil, "requires exactly 3 alive major humans and 1 alive major AI"; end
+    return {human1=humans[1], human2=humans[2], human3=humans[3], ai=ais[1]};
+end
+
+function Probe.CheckVisibility()
+    local snapshot = Probe.Snapshot(); -- fresh observer, manager, claims and units on every click
+    local report = {pass=0, fail=0, unverified=0, observer=snapshot.localPlayer};
+    report.hotseat = Try(function() return GameConfiguration.IsHotseat(); end);
+    report.multiplayer = Try(function() return GameConfiguration.IsAnyMultiplayer(); end);
+    local roles, reason = Probe.HotseatRoles();
+    report.roles = roles;
+    local context = "turn=" .. tostring(snapshot.turn) .. " observer=" .. tostring(snapshot.localPlayer);
+    print("[HLS][VISIBILITY] " .. context .. " hotseat=" .. tostring(report.hotseat) .. " multiplayer=" .. tostring(report.multiplayer) .. " readOnly=true production=HLS_HeroData.Read+HLS_Presentation.Card");
+    local function Record(status, message) Log(report, "VISIBILITY", status, context .. " " .. message); end
+    local function Finish()
+        print("[HLS][SUMMARY] visibility " .. context .. " " .. report.pass .. " PASS, " .. report.fail .. " FAIL, " .. report.unverified .. " UNVERIFIED; only this observer checked; repeat on all 3 human turns");
+        return report;
+    end
+    if type(report.hotseat) ~= "boolean" or type(report.multiplayer) ~= "boolean" then Record("UNVERIFIED", "session metadata unavailable"); end
+    if not snapshot.modeEnabled then Record("UNVERIFIED", "Heroes & Legends disabled or unavailable"); return Finish(); end
+    if not roles then Record("UNVERIFIED", tostring(reason)); return Finish(); end
+    local observer = snapshot.localPlayer;
+    if observer ~= roles.human1 and observer ~= roles.human2 and observer ~= roles.human3 then
+        Record("UNVERIFIED", "current observer is not a configured human"); return Finish();
+    end
+    print("[HLS][VISIBILITY] " .. context .. " roles human1=" .. roles.human1 .. " human2=" .. roles.human2 .. " human3=" .. roles.human3 .. " ai=" .. roles.ai);
+    for _, err in ipairs(snapshot.errors) do Record("UNVERIFIED", "snapshot error=" .. err); end
+    if HLS_HeroData == nil or HLS_Presentation == nil then
+        Record("UNVERIFIED", "production modules unavailable; enable Show Hero Lifespans"); return Finish();
+    end
+    local manager = Try(function() return Game.GetHeroesManager(); end);
+    if not manager then Record("UNVERIFIED", "heroes manager unavailable"); return Finish(); end
+    local ids = {roles.human1, roles.human2, roles.human3};
+    local counts = {[roles.human1]=0, [roles.human2]=0, [roles.human3]=0};
+    local unmet, knownFogged = 0, 0;
+    for _, owner in ipairs(ids) do
+        if owner ~= observer then
+            local met = Try(function() return Players[observer]:GetDiplomacy():HasMet(owner); end);
+            local friend = Try(function() return Players[observer]:GetDiplomacy():HasDeclaredFriendship(owner); end);
+            local war = Try(function() return Players[observer]:GetDiplomacy():IsAtWarWith(owner); end);
+            local allied = Try(function() return Players[observer]:GetDiplomacy():HasAllied(owner); end);
+            print("[HLS][VISIBILITY] " .. context .. " relationship owner=" .. owner .. " met=" .. tostring(met) .. " friend=" .. tostring(friend) .. " war=" .. tostring(war) .. " allied=" .. tostring(allied));
+            local expectedRelation;
+            if (observer == roles.human1 and owner == roles.human2) or (observer == roles.human2 and owner == roles.human1) then expectedRelation = "friend";
+            elseif (observer == roles.human1 and owner == roles.human3) or (observer == roles.human3 and owner == roles.human1) then expectedRelation = "war";
+            else expectedRelation = "neutral"; end
+            local covered = expectedRelation == "friend" and friend == true and war == false or
+                expectedRelation == "war" and war == true and friend == false or
+                expectedRelation == "neutral" and war == false and friend == false and allied == false;
+            Record(covered and "PASS" or "UNVERIFIED", "relationshipCoverage owner=" .. owner .. " expectedFinal=" .. expectedRelation .. " covered=" .. tostring(covered) .. "; final setup is required for the complete matrix");
+            if type(met) ~= "boolean" or type(friend) ~= "boolean" or type(war) ~= "boolean" or type(allied) ~= "boolean" then
+                Record("UNVERIFIED", "relationship reads unavailable owner=" .. owner);
+            end
+        end
+    end
+    for _, raw in ipairs(snapshot.heroes) do
+        if counts[raw.owner] ~= nil and raw.state == "active" then
+            counts[raw.owner] = counts[raw.owner] + 1;
+            local prefix = "hero=" .. tostring(raw.heroClassType) .. " owner=" .. tostring(raw.owner) .. " unit=" .. tostring(raw.unitID) .. " realRemaining=" .. tostring(raw.remaining);
+            local definition = nil;
+            for row in GameInfo.HeroClasses() do if row.Index == raw.heroIndex then definition = row; break; end end
+            local actual, readError = Try(function() return HLS_HeroData.Read(definition, manager, observer); end);
+            local card, cardError = Try(function() return HLS_Presentation.Card(actual, Locale.Lookup); end);
+            local met = raw.owner == observer or Try(function() return Players[observer]:GetDiplomacy():HasMet(raw.owner); end);
+            local expectedOwner = nil;
+            if met == false then expectedOwner = Locale.Lookup("LOC_HLS_UNKNOWN_CIV"); unmet = unmet + 1;
+            elseif met == true then expectedOwner = Try(function() return Locale.Lookup(PlayerConfigurations[raw.owner]:GetPlayerName()); end); end
+            local unit = Try(function() return Players[raw.owner]:GetUnits():FindID(raw.unitID); end);
+            local visible, revealed = nil, nil;
+            if unit then
+                visible = Try(function() return PlayersVisibility[observer]:IsVisible(unit:GetX(), unit:GetY()); end);
+                revealed = Try(function() return PlayersVisibility[observer]:IsRevealed(unit:GetX(), unit:GetY()); end);
+            end
+            local details = prefix .. " met=" .. tostring(met) .. " visible=" .. tostring(visible) .. " revealed=" .. tostring(revealed) ..
+                " expectedOwner=" .. tostring(expectedOwner) .. " actualOwner=" .. tostring(card and card.ownerLabel) ..
+                " expectedTimer=" .. tostring(raw.remaining) .. " actualTimer=" .. tostring(card and card.statValue);
+            if met == true and raw.owner ~= observer and visible == false then knownFogged = knownFogged + 1; end
+            if type(visible) ~= "boolean" or type(revealed) ~= "boolean" then Record("UNVERIFIED", details .. " map visibility API unavailable"); end
+            if not HLS_Presentation.IsLifespan(raw.remaining) then
+                Record("FAIL", details .. " scope=readability expected=numeric nonnegative finite active-hero lifespan");
+            elseif not actual or not card or not expectedOwner then
+                Record("UNVERIFIED", details .. " reason=" .. tostring(readError or cardError or "required value unavailable"));
+            else
+                local actualID = actual.unit and Try(function() return actual.unit:GetID(); end);
+                local good = actual.owner == raw.owner and actual.state == "active" and actualID == raw.unitID and actual.remaining == raw.remaining and
+                    actual.hasMet == met and card.ownerLabel == expectedOwner and card.statValue == tostring(raw.remaining) and card.statLabel == Locale.Lookup("LOC_HLS_TURNS_LEFT");
+                Record(good and "PASS" or "FAIL", details .. " production comparison");
+            end
+        end
+    end
+    for _, id in ipairs(ids) do
+        Record(counts[id] > 0 and "PASS" or "UNVERIFIED", "humanHeroCoverage owner=" .. id .. " activeHeroes=" .. counts[id] .. " expected=at least one manually recruited hero");
+    end
+    Record(unmet > 0 and "PASS" or "UNVERIFIED", "coverage unmetHumanHeroes=" .. unmet .. "; run before meeting; cannot unmeet");
+    Record(knownFogged > 0 and "PASS" or "UNVERIFIED", "coverage metHumanHeroesInFog=" .. knownFogged .. "; meeting/friendship/war never imply map visibility");
+    return Finish();
 end
 
 return HLS_Probe;

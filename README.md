@@ -18,7 +18,7 @@ To install only the spike tools, add `-DevOnly`.
 
 ## Optional spike tools
 
-In a disposable game, recruit a hero through normal play, open **Hero Lifespan Spikes** with Ctrl+Shift+D, and select **Run All Spikes**. The separate **Extend My Hero +5** and **Kill AI Hero** buttons are experimental gameplay actions. The tools do not automatically create a scenario or spawn heroes. Their mutation behavior still needs live verification.
+In a disposable hotseat game with three humans and one AI, have each human recruit a hero through normal play. Open **Hero Lifespan Spikes** with Ctrl+Shift+D. Use **Run All Spikes** and **Visibility Check** for observations, then **Meet Humans 1 & 2** and **Meet All + Relationships** for staged diplomacy checks. The tools do not spawn heroes; the diplomacy actions change the test game.
 
 After exiting to the desktop, summarize the completed log with `python tools/summarize_log.py 'C:\path\to\Lua.log'`. `UNVERIFIED` means an in-game check is still needed.
 
