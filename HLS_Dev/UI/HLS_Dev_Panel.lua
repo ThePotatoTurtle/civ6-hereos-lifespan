@@ -1,12 +1,13 @@
 -- UI only: reads through HLS_Probe and sends flat synchronized dev requests.
 -- API provenance: research/devtools.md. This context never mutates gameplay.
-print("[HLS][DEV UI] loading version=0.0.0.3")
+print("[HLS][DEV UI] loading version=0.1.0.1")
 include("HLS_Probe")
 
 local m_Open = true
 local m_Stamp = 0
 local m_HeroesEnabled = false
 local m_CheckerArmed = false
+local m_CheckPending = false
 local MODE_OFF_MESSAGE = "Heroes & Legends is off or unavailable. Start a new Gathering Storm game with Heroes & Legends enabled to test hero timers, extension and removal. Run All Spikes remains available for diagnostics."
 
 local function Status(message)
@@ -34,8 +35,23 @@ local function Send(command)
     Status("UNVERIFIED request=" .. command .. " reason=no local player")
     return
   end
+  local snapshot = HLS_Probe.Snapshot()
+  local target = nil
+  for _, hero in ipairs(snapshot.heroes or {}) do
+    local player = Players[hero.owner]
+    local eligible = command == "extend" and hero.owner == playerID or
+      command == "killAI" and hero.owner ~= playerID and player ~= nil and player:IsMajor() and not player:IsHuman()
+    if hero.state == "active" and hero.unitID ~= nil and eligible then target = hero; break end
+  end
+  if target == nil then
+    Status("UNVERIFIED request=" .. command .. " " ..
+      (command == "killAI" and "No AI hero found; nothing changed" or "No own hero found; nothing changed") .. "; no request sent")
+    return
+  end
   m_Stamp = m_Stamp + 1
-  local parameters = {OnStart = "HLS_Dev_Request", command = command, stamp = m_Stamp}
+  local parameters = {OnStart = "HLS_Dev_Request", command = command, stamp = m_Stamp,
+    owner = target.owner, unitID = target.unitID, heroClassType = target.heroClassType,
+    unitType = target.unitType, turn = snapshot.turn}
   local ok, err = pcall(function()
     UI.RequestPlayerOperation(playerID, PlayerOperations.EXECUTE_SCRIPT, parameters)
   end)
@@ -49,6 +65,8 @@ end
 local function RunAll()
   local focusMessage = "No own active hero is available to select; see the spike logs."
   m_CheckerArmed = false
+  m_CheckPending = false
+  ContextPtr:ClearRequestRefresh()
   local ok, err = pcall(function()
     local report = HLS_Probe.RunAllSpikes()
     if not m_HeroesEnabled then return end
@@ -89,11 +107,24 @@ local function RunAll()
   end
 end
 
-local function OnTurnBegin()
+local function OnDeferredRefresh()
+  ContextPtr:ClearRequestRefresh()
+  if not m_CheckPending then return end
+  m_CheckPending = false
   if not m_HeroesEnabled or not m_CheckerArmed then return end
   local ok, err = pcall(function() HLS_Probe.CheckTurn() end)
   if not ok then
     Status("UNVERIFIED turn checker error=" .. tostring(err))
+  end
+end
+
+local function OnTurnBegin()
+  if not m_HeroesEnabled or not m_CheckerArmed then return end
+  -- LocalPlayerTurnBegin can precede the lifespan property update. Match the
+  -- vanilla UnitPanel's deferred UI refresh instead of committing an early read.
+  if not m_CheckPending then
+    m_CheckPending = true
+    ContextPtr:RequestRefresh()
   end
 end
 
@@ -116,6 +147,7 @@ local function Initialize()
   ContextPtr:SetHide(false)
   Controls.Main:SetHide(false)
   ContextPtr:SetInputHandler(OnInput, true)
+  ContextPtr:SetRefreshHandler(OnDeferredRefresh)
   local snapshot = HLS_Probe.Snapshot()
   m_HeroesEnabled = snapshot.modeEnabled == true
   Controls.ExtendButton:SetDisabled(not m_HeroesEnabled)
@@ -125,11 +157,12 @@ local function Initialize()
   Controls.ExtendButton:RegisterCallback(Mouse.eLClick, function() Send("extend") end)
   Controls.KillAIButton:RegisterCallback(Mouse.eLClick, function() Send("killAI") end)
   Events.LocalPlayerTurnBegin.Add(OnTurnBegin)
+  Events.GameCoreEventPublishComplete.Add(OnTurnBegin)
   Controls.OpenButton:RegisterCallback(Mouse.eLClick, Toggle)
   if not m_HeroesEnabled then
     Status(MODE_OFF_MESSAGE)
   end
-  print("[HLS][DEV UI] ready version=0.0.0.3 heroesMode=" .. tostring(m_HeroesEnabled) .. " toggle=Ctrl+Shift+D gameplayProbes=extend,killAI preparation=manual checker=off_until_RunAll_with_active_hero")
+  print("[HLS][DEV UI] ready version=0.1.0.1 heroesMode=" .. tostring(m_HeroesEnabled) .. " toggle=Ctrl+Shift+D gameplayProbes=extend,killAI preparation=manual checker=off_until_RunAll_with_active_hero")
 end
 
 Initialize()

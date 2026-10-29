@@ -115,9 +115,6 @@ function Probe.Snapshot()
                     hero.remaining, hero.remainingError = Try(function()
                         return unit:GetProperty(UnitPropertyKeys.LifespanRemaining);
                     end);
-                    -- This independent Tuner getter may be absent in UI. It is
-                    -- diagnostic only; production must use the vanilla property.
-                    hero.directLifespan, hero.directError = Try(function() return unit:GetLifespan(); end);
                 elseif matches ~= nil then
                     hero.unitsError = "Multiple units match the hero class; no unit selected";
                 end
@@ -162,12 +159,6 @@ function Probe.RunAllSpikes()
             local readable = Number(hero.remaining) and hero.remaining >= 0;
             Log(report, "S1", readable and "PASS" or "FAIL", context .. " exactProperty=" .. tostring(hero.remaining)
                 .. " error=" .. tostring(hero.remainingError) .. " scope=readability");
-            if readable and Number(hero.directLifespan) then
-                Log(report, "S1", hero.remaining == hero.directLifespan and "PASS" or "FAIL",
-                    context .. " property=" .. hero.remaining .. " independentGetter=" .. hero.directLifespan);
-            else
-                Log(report, "S1", "UNVERIFIED", context .. " independent UI GetLifespan unavailable: " .. tostring(hero.directError));
-            end
         end
         Log(report, "S2", hero.state == "unavailable" and "FAIL" or "PASS", context .. " state=" .. hero.state
             .. " discovered=" .. tostring(hero.discovered) .. " recallAvailable=" .. tostring(hero.recallAvailable)
@@ -189,7 +180,8 @@ function Probe.RunAllSpikes()
     Log(report, "S2", "UNVERIFIED", "Historical death turn and other-owner recall eligibility have no verified getter; omitted");
     Log(report, "S3", "UNVERIFIED", "Game-speed scaling needs runs at two speeds; base is never compared with remaining lifespan");
     Log(report, "S4", "UNVERIFIED", "Save add/remove safety requires a separate runtime round trip; read-only code is not proof");
-    Log(report, "S5", "UNVERIFIED", "Heroes child panel extension and layout require a visual runtime spike; production UI deferred");
+    Log(report, "S1", "UNVERIFIED", "UI GetLifespan is unsupported and is not called; compare exactProperty with the vanilla UnitPanel");
+    Log(report, "S5", "UNVERIFIED", "Heroes child panel layout requires a visual runtime check");
     print("[HLS][SUMMARY] " .. report.pass .. " PASS, " .. report.fail .. " FAIL, " .. report.unverified .. " UNVERIFIED");
     return report;
 end
@@ -212,6 +204,11 @@ end
 
 function Probe.CheckTurn()
     if m_baseline == nil then
+        return { pass = 0, fail = 0, unverified = 0 };
+    end
+    -- Gamecore publishes many batches per turn. Keep the armed turn baseline
+    -- until a later turn, instead of replacing it during movement or selection.
+    if Game.GetCurrentGameTurn() <= m_baseline.turn then
         return { pass = 0, fail = 0, unverified = 0 };
     end
     local current = Probe.Snapshot();

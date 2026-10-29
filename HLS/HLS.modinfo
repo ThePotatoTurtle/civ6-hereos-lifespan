@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Mod id="38758dbd-dc19-4bbd-8051-90dfb9d9eb72" version="1">
+  <Properties>
+    <Name>Show Hero Lifespans</Name>
+    <Teaser>See each claimed hero's remaining turns in the Heroes screen.</Teaser>
+    <Description>Version 0.1.0. Shows exact remaining turns for claimed heroes, with a red warning at 5 turns or fewer. Unmet owners appear as Unknown civ. Requires Gathering Storm, the Babylon Pack and Heroes &amp; Legends. Initial development build. Multiplayer, live layout and save add/remove testing remain unverified. Replaces the Heroes card Lua script; other replacements of that script may conflict.</Description>
+    <Authors>ThePotatoTurtle</Authors>
+    <AffectsSavedGames>0</AffectsSavedGames>
+    <CompatibleVersions>2.0</CompatibleVersions>
+  </Properties>
+  <Dependencies>
+    <Mod id="4873eb62-8ccc-4574-b784-dda455e74e68" title="Expansion: Gathering Storm" />
+    <Mod id="8424840C-92EF-4426-A9B4-B4E0CB818049" title="Babylon Pack" />
+  </Dependencies>
+  <ActionCriteria>
+    <Criteria id="HLS_Heroes">
+      <RuleSetInUse>RULESET_EXPANSION_2</RuleSetInUse>
+      <ConfigurationValueMatches>
+        <Group>Game</Group><ConfigurationId>GAMEMODE_HEROES</ConfigurationId><Value>1</Value>
+      </ConfigurationValueMatches>
+    </Criteria>
+  </ActionCriteria>
+  <InGameActions>
+    <ImportFiles id="HLS_Imports" criteria="HLS_Heroes">
+      <Properties><LoadOrder>15000</LoadOrder></Properties>
+      <File>UI/HLS_Presentation.lua</File><File>UI/HLS_HeroData.lua</File>
+      <File>UI/HLS_GreatPeopleHeroPanel.lua</File>
+    </ImportFiles>
+    <UpdateText id="HLS_Text" criteria="HLS_Heroes"><File>Text/HLS_Text.xml</File></UpdateText>
+    <ReplaceUIScript id="HLS_HeroPanel" criteria="HLS_Heroes">
+      <Properties>
+        <LoadOrder>15000</LoadOrder>
+        <LuaContext>GreatPeopleHeroPanel</LuaContext>
+        <LuaReplace>UI/HLS_GreatPeopleHeroPanel.lua</LuaReplace>
+      </Properties>
+    </ReplaceUIScript>
+  </InGameActions>
+  <Files>
+    <File>UI/HLS_Presentation.lua</File><File>UI/HLS_HeroData.lua</File>
+    <File>UI/HLS_GreatPeopleHeroPanel.lua</File><File>Text/HLS_Text.xml</File>
+  </Files>
+</Mod>

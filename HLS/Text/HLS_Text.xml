@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<GameData>
+  <LocalizedText>
+    <Row Tag="LOC_HLS_UNKNOWN_CIV" Language="en_US"><Text>Unknown civ</Text></Row>
+    <Row Tag="LOC_HLS_TURNS_LEFT" Language="en_US"><Text>Turns left</Text></Row>
+    <Row Tag="LOC_HLS_LIFESPAN" Language="en_US"><Text>Lifespan</Text></Row>
+    <Row Tag="LOC_HLS_UNAVAILABLE" Language="en_US"><Text>Unavailable</Text></Row>
+    <Row Tag="LOC_HLS_FALLEN" Language="en_US"><Text>Fallen</Text></Row>
+    <Row Tag="LOC_HLS_CAN_RECALL" Language="en_US"><Text>Can be recalled</Text></Row>
+  </LocalizedText>
+</GameData>

@@ -1,49 +1,49 @@
 -- TEST GAME ONLY. Source-backed operations, invoked solely by EXECUTE_SCRIPT.
 -- No UI/local player reads, random choices, async mutation handlers or saved state.
 -- API provenance and the unverified gameplay availability gate: research/devtools.md.
-local VERSION = "0.0.0.3"
+local VERSION = "0.1.0.1"
 
 local function Log(command, playerID, stamp, message)
   print("[HLS][DEV " .. command .. "] turn=" .. tostring(Game.GetCurrentGameTurn()) ..
     " player=" .. tostring(playerID) .. " stamp=" .. tostring(stamp) .. " " .. message)
 end
 
-local function HeroRows()
-  local rows = {}
-  for row in GameInfo.HeroClasses() do rows[#rows + 1] = row end
-  table.sort(rows, function(a, b) return a.Index < b.Index end)
-  return rows
+local function Integer(value)
+  return type(value) == "number" and value >= 0 and value < math.huge and value == math.floor(value)
 end
 
-local function FindUnit(owner, row)
+local function ResolveTarget(requester, parameters, ai)
+  -- Claims are exposed in UI, not gameplay. Resolve only the UI-selected identity
+  -- and reject stale/reused IDs before touching the unit. Never silently retarget.
+  local owner, unitID = parameters.owner, parameters.unitID
+  if not Integer(owner) or not Integer(unitID) or not Integer(parameters.turn) then
+    return nil, "missing or invalid target identity"
+  end
+  if parameters.turn ~= Game.GetCurrentGameTurn() then return nil, "stale target turn" end
   local player = Players[owner]
-  if player == nil then return nil end
-  local found = nil
-  for _, unit in player:GetUnits():Members() do
-    local definition = GameInfo.Units[unit:GetType()]
-    if definition and definition.UnitType == row.UnitType then
-      if found == nil or unit:GetID() < found:GetID() then found = unit end
+  if player == nil then return nil, "target player unavailable" end
+  if (not ai and owner ~= requester) or
+    (ai and (owner == requester or not player:IsMajor() or player:IsHuman())) then
+    return nil, "target owner is not eligible for this command"
+  end
+  local row = nil
+  for candidate in GameInfo.HeroClasses() do
+    if candidate.HeroClassType == parameters.heroClassType and candidate.UnitType == parameters.unitType then
+      row = candidate
+      break
     end
   end
-  return found
-end
-
-local function SelectHero(requester, ai)
-  local manager = Game.GetHeroesManager()
-  if manager == nil then return nil, nil, nil end
-  for _, row in ipairs(HeroRows()) do
-    local owner = manager:GetHeroClaimPlayer(row.Index)
-    if type(owner) == "number" and owner >= 0 then
-      local player = Players[owner]
-      local eligible = (not ai and owner == requester) or
-        (ai and owner ~= requester and player ~= nil and player:IsMajor() and not player:IsHuman())
-      if eligible then
-        local unit = FindUnit(owner, row)
-        if unit then return unit, owner, row end
-      end
-    end
+  if row == nil then return nil, "hero class and unit type do not match" end
+  local unit = player:GetUnits():FindID(unitID)
+  if unit == nil then return nil, "target unit is no longer present" end
+  local definition = GameInfo.Units[unit:GetType()]
+  if unit:GetID() ~= unitID or definition == nil or definition.UnitType ~= row.UnitType then
+    return nil, "target unit identity changed"
   end
-  return nil, nil, nil
+  -- IsHero/GetLifespan/SetLifespan have Tuner source evidence only. Their gameplay
+  -- availability is still a runtime gate; pcall below reports an unavailable API.
+  if not unit:IsHero() then return nil, "target unit is not a hero" end
+  return unit, nil, row
 end
 
 local function Execute(playerID, parameters)
@@ -57,11 +57,12 @@ local function Execute(playerID, parameters)
     Log(command, playerID, stamp, "UNVERIFIED reason=invalid requesting player")
     return
   end
-  local unit, owner, row = SelectHero(playerID, command == "killAI")
+  local unit, reason, row = ResolveTarget(playerID, parameters, command == "killAI")
   if unit == nil then
-    Log(command, playerID, stamp, "UNVERIFIED actual=no eligible live claimed hero expected=eligible live claimed hero; prepare heroes through normal gameplay")
+    Log(command, playerID, stamp, "UNVERIFIED reason=" .. tostring(reason) .. "; no mutation")
     return
   end
+  local owner = parameters.owner
   local identity = " hero=" .. tostring(row.HeroClassType) .. " owner=" .. tostring(owner) .. " unit=" .. tostring(unit:GetID())
   if command == "extend" then
     local before = unit:GetLifespan()
@@ -78,7 +79,7 @@ local function Execute(playerID, parameters)
   else
     local beforeID = unit:GetID()
     UnitManager.Kill(unit)
-    local remainingUnit = FindUnit(owner, row)
+    local remainingUnit = Players[owner]:GetUnits():FindID(beforeID)
     local absent = remainingUnit == nil
     Log(command, playerID, stamp, (absent and "PASS" or "FAIL") .. identity ..
       " actual=" .. (absent and "absent" or tostring(remainingUnit:GetID())) .. " expected=absent priorUnit=" .. tostring(beforeID) ..

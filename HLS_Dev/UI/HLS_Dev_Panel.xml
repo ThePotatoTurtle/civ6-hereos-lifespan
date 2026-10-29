@@ -6,7 +6,7 @@
     <Box Anchor="L,T" Size="parent,2" Color="200,170,110,255" />
     <Stack Anchor="L,T" Offset="12,10" StackGrowth="Bottom" StackPadding="8">
       <Container Size="616,32">
-        <Label Anchor="L,C" Style="FontNormal18" Color="240,220,170,255" String="Show Hero Lifespans Spike Tools 0.0.0.3" />
+        <Label Anchor="L,C" Style="FontNormal18" Color="240,220,170,255" String="Show Hero Lifespans Spike Tools 0.1.0.1" />
         <GridButton ID="CloseButton" Anchor="R,C" Size="60,28" SliceCorner="12,12" SliceSize="1,1" SliceTextureSize="24,24" Texture="Controls_ButtonControl_Brown" StateOffsetIncrement="0,24" Style="FontNormal14" String="Close" />
       </Container>
       <Label Anchor="L,T" Style="FontNormal14" Color="230,220,200,255" WrapWidth="610" String="Testing only. Results are written to Lua.log. Ctrl+Shift+D toggles this panel." />
