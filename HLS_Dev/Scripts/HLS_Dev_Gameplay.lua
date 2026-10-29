@@ -1,7 +1,7 @@
 -- TEST GAME ONLY. Source-backed operations, invoked solely by EXECUTE_SCRIPT.
 -- No UI/local player reads, random choices, async mutation handlers or saved state.
 -- API provenance and the unverified gameplay availability gate: research/devtools.md.
-local VERSION = "0.0.0.1"
+local VERSION = "0.0.0.2"
 local m_SetupAttempted = false
 
 local function Log(command, playerID, stamp, message)
@@ -47,16 +47,40 @@ local function SelectHero(requester, ai)
   return nil, nil, nil
 end
 
-local function AnchorFor(owner)
-  local player = Players[owner]
-  local capital = player:GetCities():GetCapitalCity()
-  if capital then return capital:GetX(), capital:GetY() end
-  local first = nil
-  for _, unit in player:GetUnits():Members() do
-    if first == nil or unit:GetID() < first:GetID() then first = unit end
+local function HeroGrantModifier(row)
+  local heroArguments, monumentLocations = {}, {}
+  for argument in GameInfo.ModifierArguments() do
+    if argument.Name == "HeroClassType" and argument.Value == row.HeroClassType then
+      heroArguments[#heroArguments + 1] = argument.ModifierId
+    elseif argument.Name == "LocationBuildingType" and argument.Value == "BUILDING_MONUMENT" then
+      monumentLocations[argument.ModifierId] = true
+    end
   end
-  if first then return first:GetX(), first:GetY() end
-  return nil, nil
+  table.sort(heroArguments)
+  for _, modifierID in ipairs(heroArguments) do
+    local definition = GameInfo.Modifiers[modifierID]
+    if definition and definition.ModifierType == "MODIFIER_CITY_GRANT_HERO" and monumentLocations[modifierID] then
+      return modifierID
+    end
+  end
+  return nil
+end
+
+local function CreateOriginCity(owner, monument)
+  local cities = Players[owner]:GetCities()
+  for plotIndex = 0, Map.GetPlotCount() - 1 do
+    local plot = Map.GetPlotByIndex(plotIndex)
+    if plot and cities:IsValidFoundLocation(plot:GetX(), plot:GetY()) == true then
+      local city = cities:Create(plot:GetX(), plot:GetY())
+      if city then
+        if city:GetOwner() ~= owner then error("origin city owner does not match requested player") end
+        city:GetBuildQueue():CreateIncompleteBuilding(monument.Index, 100)
+        if not city:GetBuildings():HasBuilding(monument.Index) then error("origin city Monument was not created") end
+        return city
+      end
+    end
+  end
+  error("no valid founding location for an origin city")
 end
 
 local function Setup(playerID, stamp)
@@ -76,14 +100,21 @@ local function Setup(playerID, stamp)
   for _, row in ipairs(HeroRows()) do
     if manager:GetHeroClaimPlayer(row.Index) == -1 then unclaimed[#unclaimed + 1] = row end
   end
-  local x, y = AnchorFor(playerID)
-  local aiX, aiY
-  if aiID then aiX, aiY = AnchorFor(aiID) end
-  if #unclaimed < 4 or x == nil or aiX == nil then
+  local monument = GameInfo.Buildings["BUILDING_MONUMENT"]
+  if #unclaimed < 4 or aiID == nil or monument == nil then
     Log("SETUP", playerID, stamp, "UNVERIFIED actual=unclaimed:" .. tostring(#unclaimed) ..
-      ",localAnchor:" .. tostring(x) .. ",aiAnchor:" .. tostring(aiX) ..
-      " expected=4 unclaimed heroes and local/AI anchors; no mutation; attempt locked")
+      ",ai:" .. tostring(aiID) .. ",monumentDefinition:" .. tostring(monument ~= nil) ..
+      " expected=4 unclaimed heroes, a major AI and Monument definition; no mutation; attempt locked")
     return
+  end
+  local modifiers = {}
+  for i = 1, 3 do
+    modifiers[i] = HeroGrantModifier(unclaimed[i])
+    if modifiers[i] == nil then
+      Log("SETUP", playerID, stamp, "UNVERIFIED hero=" .. tostring(unclaimed[i].HeroClassType) ..
+        " actual=no matching built-in city grant modifier expected=hero class plus Monument arguments; no mutation; attempt locked")
+      return
+    end
   end
   local created = {}
   local function Cleanup()
@@ -96,45 +127,63 @@ local function Setup(playerID, stamp)
       end
     end
   end
-  local function Spawn(owner, row, px, py)
-    Log("SETUP", playerID, stamp, "variant=A generic InitUnit hero=" .. tostring(row.HeroClassType) ..
+  local function Grant(owner, row, modifierID)
+    local city = CreateOriginCity(owner, monument)
+    local record = {owner = owner, row = row, city = city}
+    created[#created + 1] = record
+    Log("SETUP", playerID, stamp, "variant=B city grant hero=" .. tostring(row.HeroClassType) ..
       " owner=" .. tostring(owner) .. " claimBefore=" .. tostring(manager:GetHeroClaimPlayer(row.Index)) ..
-      " expectedClaimBefore=-1 x=" .. tostring(px) .. " y=" .. tostring(py))
-    UnitManager.InitUnit(owner, row.UnitType, px, py)
+      " expectedClaimBefore=-1 city=" .. tostring(city:GetID()) .. " modifier=" .. modifierID ..
+      " monument=" .. tostring(city:GetBuildings():HasBuilding(monument.Index)) .. " expectedMonument=true")
+    city:AttachModifierByID(modifierID)
     local unit = FindUnit(owner, row)
-    if unit then created[#created + 1] = {owner = owner, row = row} end
     local claim = manager:GetHeroClaimPlayer(row.Index)
+    local origin = manager:GetHeroOriginCityID(row.Index)
     local isHero = unit ~= nil and unit:IsHero()
     local lifespan = unit ~= nil and unit:GetLifespan() or nil
-    local valid = unit ~= nil and claim == owner and isHero == true and type(lifespan) == "number" and lifespan > 0
-    Log("SETUP", playerID, stamp, (valid and "PASS" or "FAIL") .. " variant=A hero=" .. tostring(row.HeroClassType) ..
+    local valid = unit ~= nil and claim == owner and origin ~= nil and origin.id == city:GetID() and
+      isHero == true and type(lifespan) == "number" and lifespan > 0
+    Log("SETUP", playerID, stamp, (valid and "PASS" or "FAIL") .. " variant=B hero=" .. tostring(row.HeroClassType) ..
       " owner=" .. tostring(owner) .. " claimAfter=" .. tostring(claim) .. " expectedClaim=" .. tostring(owner) ..
+      " originCity=" .. tostring(origin and origin.id) .. " expectedOriginCity=" .. tostring(city:GetID()) ..
       " isHero=" .. tostring(isHero) .. " expectedIsHero=true lifespan=" .. tostring(lifespan) .. " expectedLifespan=>0")
-    if not valid then error("generic InitUnit did not register a usable claimed hero") end
+    if not valid then error("built-in city grant did not register a usable hero and origin city") end
     return unit
   end
   local ok, err = pcall(function()
-    Spawn(playerID, unclaimed[1], x, y)
-    Spawn(aiID, unclaimed[2], aiX, aiY)
-    local third = Spawn(playerID, unclaimed[3], x, y)
+    for i = 1, 4 do
+      manager:SetHeroDiscovered(playerID, unclaimed[i].Index, true)
+      if manager:IsHeroDiscovered(playerID, unclaimed[i].Index) ~= true then
+        error("hero discovery was not registered for the requesting player")
+      end
+    end
+    Grant(playerID, unclaimed[1], modifiers[1])
+    Grant(aiID, unclaimed[2], modifiers[2])
+    local third = Grant(playerID, unclaimed[3], modifiers[3])
     UnitManager.Kill(third)
-    local localAlive = FindUnit(playerID, unclaimed[1]) ~= nil
-    local aiAlive = FindUnit(aiID, unclaimed[2]) ~= nil
+    local localAlive = manager:GetHeroClaimPlayer(unclaimed[1].Index) == playerID and FindUnit(playerID, unclaimed[1]) ~= nil
+    local aiAlive = manager:GetHeroClaimPlayer(unclaimed[2].Index) == aiID and FindUnit(aiID, unclaimed[2]) ~= nil
     local fallen = manager:GetHeroClaimPlayer(unclaimed[3].Index) == playerID and FindUnit(playerID, unclaimed[3]) == nil
     local leftUnclaimed = manager:GetHeroClaimPlayer(unclaimed[4].Index) == -1
-    if not (localAlive and aiAlive and fallen and leftUnclaimed) then
-      error("scenario state incomplete local=" .. tostring(localAlive) .. " ai=" .. tostring(aiAlive) ..
-        " registeredFallen=" .. tostring(fallen) .. " unclaimed=" .. tostring(leftUnclaimed))
+    local originsValid = true
+    for _, record in ipairs(created) do
+      local origin = manager:GetHeroOriginCityID(record.row.Index)
+      if origin == nil or origin.id ~= record.city:GetID() or record.city:GetOwner() ~= record.owner or
+        not record.city:GetBuildings():HasBuilding(monument.Index) then originsValid = false end
     end
-    Log("SETUP", playerID, stamp, "PASS variant=A actual=localAlive:1,aiAlive:1,registeredFallen:1,unclaimed:1" ..
-      " expected=localAlive:1,aiAlive:1,registeredFallen:1,unclaimed:1" ..
+    if not (localAlive and aiAlive and fallen and leftUnclaimed and originsValid) then
+      error("scenario state incomplete local=" .. tostring(localAlive) .. " ai=" .. tostring(aiAlive) ..
+        " registeredFallen=" .. tostring(fallen) .. " unclaimed=" .. tostring(leftUnclaimed) .. " origins=" .. tostring(originsValid))
+    end
+    Log("SETUP", playerID, stamp, "PASS variant=B actual=localAlive:1,aiAlive:1,registeredFallen:1,unclaimed:1,validOrigins:3" ..
+      " expected=localAlive:1,aiAlive:1,registeredFallen:1,unclaimed:1,validOrigins:3" ..
       " localHero=" .. tostring(unclaimed[1].HeroClassType) .. " aiHero=" .. tostring(unclaimed[2].HeroClassType) ..
       " fallenHero=" .. tostring(unclaimed[3].HeroClassType) .. " unclaimedHero=" .. tostring(unclaimed[4].HeroClassType))
   end)
   if not ok then
     Cleanup()
-    Log("SETUP", playerID, stamp, "FAIL variant=A actual=" .. tostring(err) ..
-      " expected=complete registered scenario; cleanup=units only; claim state may remain; restart disposable game; attempt locked")
+    Log("SETUP", playerID, stamp, "FAIL variant=B actual=" .. tostring(err) ..
+      " expected=complete registered scenario; cleanup=units only; support cities, discovery and claim state may remain; restart disposable game; attempt locked")
   end
 end
 

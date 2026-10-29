@@ -1,10 +1,13 @@
 -- UI only: reads through HLS_Probe and sends flat synchronized dev requests.
 -- API provenance: research/devtools.md. This context never mutates gameplay.
+print("[HLS][DEV UI] loading version=0.0.0.2")
 include("HLS_Probe")
 
 local m_Open = true
 local m_Stamp = 0
 local m_LaunchInstance = {}
+local m_HeroesEnabled = false
+local MODE_OFF_MESSAGE = "Heroes & Legends is off or unavailable. Start a new Gathering Storm game with Heroes & Legends enabled to use setup, extension and removal. Run All Spikes remains available for diagnostics."
 
 local function Status(message)
   Controls.StatusLabel:SetText(message)
@@ -22,6 +25,10 @@ local function Toggle()
 end
 
 local function Send(command)
+  if not m_HeroesEnabled then
+    Status("UNVERIFIED request=" .. command .. " reason=Heroes & Legends mode is off or unavailable; no request sent")
+    return
+  end
   local playerID = Game.GetLocalPlayer()
   if type(playerID) ~= "number" or playerID < 0 then
     Status("UNVERIFIED request=" .. command .. " reason=no local player")
@@ -43,6 +50,7 @@ local function RunAll()
   local focusMessage = "No own active hero is available to select; see the spike logs."
   local ok, err = pcall(function()
     local report = HLS_Probe.RunAllSpikes()
+    if not m_HeroesEnabled then return end
     HLS_Probe.StartChecker()
     local snapshot = report and report.snapshot
     if snapshot then
@@ -62,13 +70,18 @@ local function RunAll()
     end
   end)
   if ok then
-    Status("Spikes logged. Observational turn checker armed. " .. focusMessage)
+    if m_HeroesEnabled then
+      Status("Spikes logged. Observational turn checker armed. " .. focusMessage)
+    else
+      Status(MODE_OFF_MESSAGE)
+    end
   else
     Status("FAIL Run All Spikes error=" .. tostring(err))
   end
 end
 
 local function OnTurnBegin()
+  if not m_HeroesEnabled then return end
   local ok, err = pcall(function() HLS_Probe.CheckTurn() end)
   if not ok then
     Status("UNVERIFIED turn checker error=" .. tostring(err))
@@ -108,9 +121,14 @@ local function Initialize()
   ContextPtr:SetHide(false)
   Controls.Main:SetHide(false)
   ContextPtr:SetInputHandler(OnInput, true)
+  local snapshot = HLS_Probe.Snapshot()
+  m_HeroesEnabled = snapshot.modeEnabled == true
+  Controls.SetupButton:SetDisabled(not m_HeroesEnabled)
+  Controls.ExtendButton:SetDisabled(not m_HeroesEnabled)
+  Controls.KillAIButton:SetDisabled(not m_HeroesEnabled)
   Controls.CloseButton:RegisterCallback(Mouse.eLClick, function() SetOpen(false) end)
   Controls.RunAllButton:RegisterCallback(Mouse.eLClick, RunAll)
-  Controls.SetupButton:SetToolTipString("Experimental InitUnit variant A: verifies hero claims, IsHero and lifespan. One attempt per loaded session; an incomplete setup requires a new disposable game.")
+  Controls.SetupButton:SetToolTipString("Experimental built-in hero grant: creates the origin cities and Monuments, then verifies claims, origins, IsHero and lifespan. One attempt per loaded session; an incomplete setup requires a new disposable game.")
   Controls.SetupButton:RegisterCallback(Mouse.eLClick, function()
     Controls.SetupButton:SetDisabled(true)
     Send("setup")
@@ -119,7 +137,10 @@ local function Initialize()
   Controls.KillAIButton:RegisterCallback(Mouse.eLClick, function() Send("killAI") end)
   Events.LocalPlayerTurnBegin.Add(OnTurnBegin)
   AttachLaunchButton()
-  print("[HLS][DEV UI] ready version=0.0.0.1 toggle=Ctrl+Shift+D gameplayProbes=setup,extend,killAI setup=EXPERIMENTAL")
+  if not m_HeroesEnabled then
+    Status(MODE_OFF_MESSAGE)
+  end
+  print("[HLS][DEV UI] ready version=0.0.0.2 heroesMode=" .. tostring(m_HeroesEnabled) .. " toggle=Ctrl+Shift+D gameplayProbes=setup,extend,killAI setup=EXPERIMENTAL")
 end
 
 Initialize()

@@ -5,13 +5,13 @@
     <Box Anchor="L,T" Size="parent,2" Color="200,170,110,255" />
     <Stack Anchor="L,T" Offset="12,10" StackGrowth="Bottom" StackPadding="8">
       <Container Size="616,32">
-        <Label Anchor="L,C" Style="FontNormal18" Color="240,220,170,255" String="Show Hero Lifespans Spike Tools 0.0.0.1" />
+        <Label Anchor="L,C" Style="FontNormal18" Color="240,220,170,255" String="Show Hero Lifespans Spike Tools 0.0.0.2" />
         <GridButton ID="CloseButton" Anchor="R,C" Size="60,28" SliceCorner="12,12" SliceSize="1,1" SliceTextureSize="24,24" Texture="Controls_ButtonControl_Brown" StateOffsetIncrement="0,24" Style="FontNormal14" String="Close" />
       </Container>
       <Label Anchor="L,T" Style="FontNormal14" Color="230,220,200,255" WrapWidth="610" String="Testing only. Results are written to Lua.log. Ctrl+Shift+D toggles this panel." />
       <GridButton ID="RunAllButton" Size="300,34" SliceCorner="12,12" SliceSize="1,1" SliceTextureSize="24,24" Texture="Controls_ButtonControl_Brown" StateOffsetIncrement="0,24" Style="FontNormal14" String="Run All Spikes" />
       <GridButton ID="SetupButton" Size="300,34" SliceCorner="12,12" SliceSize="1,1" SliceTextureSize="24,24" Texture="Controls_ButtonControl_Brown" StateOffsetIncrement="0,24" Style="FontNormal14" String="Setup Heroes Scenario (experimental)" />
-      <Label Anchor="L,T" Style="FontNormal12" Color="230,200,150,255" WrapWidth="610" String="Experimental: generic unit creation may register hero claims. Setup checks local, AI, fallen and unclaimed heroes. One attempt per session. A failed partial setup requires a new disposable game." />
+      <Label Anchor="L,T" Style="FontNormal12" Color="230,200,150,255" WrapWidth="610" String="Experimental: creates the test cities and Monuments, then tests built-in hero grants. Checks local, AI, fallen and unclaimed heroes. One attempt per session. A failed partial setup requires a new disposable game." />
       <GridButton ID="ExtendButton" Size="300,34" SliceCorner="12,12" SliceSize="1,1" SliceTextureSize="24,24" Texture="Controls_ButtonControl_Brown" StateOffsetIncrement="0,24" Style="FontNormal14" String="Extend My Hero +5" />
       <GridButton ID="KillAIButton" Size="300,34" SliceCorner="12,12" SliceSize="1,1" SliceTextureSize="24,24" Texture="Controls_ButtonControl_Brown" StateOffsetIncrement="0,24" Style="FontNormal14" String="Kill AI Hero" />
       <Label Anchor="L,T" Style="FontNormal12" Color="230,200,150,255" WrapWidth="610" String="Extension and removal are synchronized gameplay probes. They choose the first eligible claimed hero by hero index. Runtime availability is unverified; each probe logs its actual result." />
