@@ -9,20 +9,14 @@ function HLS_HeroData.Read(definition, manager, localPlayer)
     local hero = {definition=definition, state="unavailable"};
     hero.owner = manager:GetHeroClaimPlayer(definition.Index);
     hero.isLocal = hero.owner == localPlayer;
+    local unitInfo = GameInfo.Units[definition.UnitType];
+    if unitInfo then
+        local base = UnitManager.GetUnitTypeBaseLifespan(unitInfo.Index);
+        if HLS_Presentation.IsLifespan(base) then hero.baseLifespan = base; end
+    end
     if hero.owner == -1 then
         hero.state = "unclaimed";
-        local unitInfo = GameInfo.Units[definition.UnitType];
-        if unitInfo then
-            local base = UnitManager.GetUnitTypeBaseLifespan(unitInfo.Index);
-            if HLS_Presentation.IsLifespan(base) then hero.baseLifespan = base; end
-        end
         return hero;
-    end
-
-    local observer = Players[localPlayer];
-    hero.hasMet = hero.isLocal or (observer ~= nil and observer:GetDiplomacy():HasMet(hero.owner));
-    if hero.hasMet and PlayerConfigurations[hero.owner] then
-        hero.ownerName = Locale.Lookup(PlayerConfigurations[hero.owner]:GetPlayerName());
     end
 
     local owner = Players[hero.owner];

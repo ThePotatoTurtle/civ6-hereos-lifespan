@@ -1,5 +1,5 @@
 -- Adapted from Babylon GreatPeopleHeroPanel.lua, Copyright 2020, Firaxis Games.
--- Show Hero Lifespans 0.1.1. Vanilla XML, parent tab and actions are retained.
+-- Show Hero Lifespans 0.1.2. Vanilla XML, parent tab and actions are retained.
 
 include("InstanceManager");
 include("HeroesSupport");
@@ -36,11 +36,9 @@ function RefreshHeroes()
     local localPlayer = Game.GetLocalPlayer();
     local heroes = {};
     for row in GameInfo.HeroClasses() do
-        local hero = HLS_HeroData.Read(row, manager, localPlayer);
-        -- All claimed heroes follow visibility Option A. Discovery still
-        -- controls unclaimed cards, as in vanilla.
-        if hero.owner ~= -1 or manager:IsHeroDiscovered(localPlayer, row.Index) then
-            heroes[#heroes + 1] = hero;
+        -- Keep the default Heroes screen discovery filter for every card.
+        if manager:IsHeroDiscovered(localPlayer, row.Index) then
+            heroes[#heroes + 1] = HLS_HeroData.Read(row, manager, localPlayer);
         end
     end
     table.sort(heroes, HLS_Presentation.Less);
@@ -153,7 +151,7 @@ function AddHero( kHeroDef, hero )
 		kHeroInstance.CivilopediaButton:SetHide(true);
 	end
 
-    -- Never attach an unmet owner's civ icon or leader tooltip.
+    -- Preserve vanilla recruited status and the helper's owner identity rules.
     local claimedByPlayer = hero.owner;
     kHeroInstance.ClaimedByCivIcon.CivIconBacking:SetHide(true);
     kHeroInstance.DeceasedText:SetHide(true);
@@ -163,13 +161,11 @@ function AddHero( kHeroDef, hero )
         kHeroInstance.HeroStatus:SetText(Locale.Lookup("LOC_GREAT_PEOPLE_HEROES_DISCOVERED_STATE"));
         return;
     end
-    kHeroInstance.HeroStatus:SetText(card.ownerLabel or Locale.Lookup("LOC_HLS_UNAVAILABLE"));
-    if hero.hasMet then
-        local controller = CivilizationIcon:AttachInstance(kHeroInstance.ClaimedByCivIcon);
-        controller:UpdateIconFromPlayerID(claimedByPlayer);
-        controller:SetLeaderTooltip(claimedByPlayer);
-        kHeroInstance.ClaimedByCivIcon.CivIconBacking:SetHide(false);
-    end
+    kHeroInstance.HeroStatus:SetText(Locale.Lookup("LOC_GREAT_PEOPLE_HEROES_RECRUITED_STATE"));
+    local controller = CivilizationIcon:AttachInstance(kHeroInstance.ClaimedByCivIcon);
+    controller:UpdateIconFromPlayerID(claimedByPlayer);
+    controller:SetLeaderTooltip(claimedByPlayer);
+    kHeroInstance.ClaimedByCivIcon.CivIconBacking:SetHide(false);
 
     local bHideLookAtButton, bHideRecallButton = true, true;
     if hero.isLocal then
@@ -325,7 +321,7 @@ end
 
 -- ===========================================================================
 function Initialize()
-    print("[HLS][UI] Heroes panel loaded version=0.1.1");
+    print("[HLS][UI] Heroes panel loaded version=0.1.2");
     -- Sources: UnitPanel.lua:4225; ResearchChooser.lua:399,485; parent popup:1213.
     ContextPtr:SetRefreshHandler(HLS_OnDeferredRefresh);
     Events.LocalPlayerTurnBegin.Add(HLS_QueueRefresh);

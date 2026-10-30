@@ -19,21 +19,6 @@ local function AddError(snapshot, message)
     snapshot.errors[#snapshot.errors + 1] = message;
 end
 
-local function OwnerLabel(owner, localPlayer)
-    if owner == -1 then return nil, nil; end
-    local met = owner == localPlayer;
-    if not met then
-        met = Try(function()
-            return Players[localPlayer]:GetDiplomacy():HasMet(owner);
-        end) == true;
-    end
-    if not met then return false, "Unknown civ"; end
-    local name = Try(function()
-        return Locale.Lookup(PlayerConfigurations[owner]:GetPlayerName());
-    end);
-    return true, name;
-end
-
 local function ReadLocalRecall(manager, hero, localPlayer)
     -- Vanilla only runs this command query for the local claimant. Do not infer
     -- another owner's eligibility from a local player's command restrictions.
@@ -90,7 +75,6 @@ function Probe.Snapshot()
             hero.baseLifespan, hero.baseError = Try(function()
                 return UnitManager.GetUnitTypeBaseLifespan(GameInfo.Units[definition.UnitType].Index);
             end);
-            hero.ownerMet, hero.ownerName = OwnerLabel(hero.owner, snapshot.localPlayer);
             if hero.owner == -1 then
                 hero.state = "unclaimed";
             elseif Number(hero.owner) then
@@ -139,49 +123,46 @@ end
 local function Context(snapshot, hero)
     return "turn=" .. tostring(snapshot.turn) .. " hero=" .. tostring(hero.heroClassType)
         .. " name=" .. tostring(hero.name)
-        .. " owner=" .. tostring(hero.owner) .. " met=" .. tostring(hero.ownerMet)
+        .. " owner=" .. tostring(hero.owner)
         .. " unit=" .. tostring(hero.unitID);
 end
 
 function Probe.RunAllSpikes()
     local snapshot = Probe.Snapshot();
-    local report = { pass = 0, fail = 0, unverified = 0, snapshot = snapshot };
+    local report = {pass=0, fail=0, unverified=0, snapshot=snapshot};
     print("[HLS][RUN] turn=" .. tostring(snapshot.turn) .. " localPlayer=" .. tostring(snapshot.localPlayer)
-        .. " modeEnabled=" .. tostring(snapshot.modeEnabled) .. " probeReadOnly=true; optional meeting/relationship buttons change diplomacy");
+        .. " modeEnabled=" .. tostring(snapshot.modeEnabled) .. " probeReadOnly=true");
     for _, message in ipairs(snapshot.errors) do Log(report, "S1", "FAIL", message); end
-    local own, other, unmet, fallen = 0, 0, 0, 0;
+    local active = 0;
     for _, hero in ipairs(snapshot.heroes) do
-        local context = Context(snapshot, hero);
-        if hero.state == "fallen" then fallen = fallen + 1; end
-        if hero.state == "active" then
-            if hero.owner == snapshot.localPlayer then own = own + 1;
-            else other = other + 1; if not hero.ownerMet then unmet = unmet + 1; end end
-            local readable = Number(hero.remaining) and hero.remaining >= 0;
-            Log(report, "S1", readable and "PASS" or "FAIL", context .. " exactProperty=" .. tostring(hero.remaining)
-                .. " error=" .. tostring(hero.remainingError) .. " scope=readability");
+        if hero.discovered == true then
+            local context = Context(snapshot, hero);
+            if hero.state == "active" then
+                active = active + 1;
+                local readable = Number(hero.remaining) and hero.remaining >= 0 and hero.remaining < math.huge;
+                Log(report, "S1", readable and "PASS" or "FAIL", context .. " exactProperty=" .. tostring(hero.remaining)
+                    .. " error=" .. tostring(hero.remainingError) .. " scope=readability");
+            end
+            Log(report, "S2", hero.state == "unavailable" and "FAIL" or "PASS", context .. " state=" .. hero.state
+                .. " discovered=" .. tostring(hero.discovered) .. " error=" .. tostring(hero.unitsError or hero.ownerError));
+            if hero.state == "fallen" and hero.owner == snapshot.localPlayer then
+                Log(report, "S2", type(hero.recallAvailable) == "boolean" and "PASS" or "UNVERIFIED",
+                    context .. " scope=local-recall-read available=" .. tostring(hero.recallAvailable)
+                    .. " error=" .. tostring(hero.recallError));
+            end
+            if hero.state == "fallen" or hero.state == "unclaimed" then
+                Log(report, "S3", Number(hero.baseLifespan) and hero.baseLifespan >= 0 and hero.baseLifespan < math.huge and "PASS" or "FAIL",
+                    context .. " engineBase=" .. tostring(hero.baseLifespan) .. " error=" .. tostring(hero.baseError));
+            end
         end
-        Log(report, "S2", hero.state == "unavailable" and "FAIL" or "PASS", context .. " state=" .. hero.state
-            .. " discovered=" .. tostring(hero.discovered) .. " recallAvailable=" .. tostring(hero.recallAvailable)
-            .. " scope=state-read deathTurn=unavailable error=" .. tostring(hero.unitsError or hero.ownerError));
-        if hero.state == "fallen" and hero.owner == snapshot.localPlayer then
-            Log(report, "S2", type(hero.recallAvailable) == "boolean" and "PASS" or "UNVERIFIED",
-                context .. " scope=local-recall-read available=" .. tostring(hero.recallAvailable)
-                .. " error=" .. tostring(hero.recallError));
-        end
-        Log(report, "S3", Number(hero.baseLifespan) and "PASS" or "UNVERIFIED",
-            context .. " engineBase=" .. tostring(hero.baseLifespan) .. " scope=base-read"
-            .. " startingLifespan=unavailable bonusTurns=unavailable recallsUsed=unavailable error=" .. tostring(hero.baseError));
     end
-    Log(report, "S1", own > 0 and "PASS" or "UNVERIFIED",
-        "coverage own=" .. own .. "; scope=presence; visual UnitPanel comparison and countdown still required; no other owner required");
-    Log(report, "S1", other > 0 and "PASS" or "UNVERIFIED", "coverage other=" .. other);
-    Log(report, "S1", unmet > 0 and "PASS" or "UNVERIFIED", "coverage unmet=" .. unmet);
-    Log(report, "S2", fallen > 0 and "PASS" or "UNVERIFIED", "coverage fallen=" .. fallen);
-    Log(report, "S2", "UNVERIFIED", "Historical death turn and other-owner recall eligibility have no verified getter; omitted");
-    Log(report, "S3", "UNVERIFIED", "Game-speed scaling needs runs at two speeds; base is never compared with remaining lifespan");
-    Log(report, "S4", "UNVERIFIED", "Save add/remove safety requires a separate runtime round trip; read-only code is not proof");
-    Log(report, "S1", "UNVERIFIED", "UI GetLifespan is unsupported and is not called; compare exactProperty with the vanilla UnitPanel");
-    Log(report, "S5", "UNVERIFIED", "Heroes child panel layout requires a visual runtime check");
+    if snapshot.modeEnabled and active == 0 then
+        Log(report, "S1", "UNVERIFIED", "no discovered active heroes; manually recruit or recall one, then Run All Spikes");
+    end
+    local validation = Probe.RevalidateLifespans(snapshot);
+    report.pass = report.pass + validation.pass;
+    report.fail = report.fail + validation.fail;
+    report.unverified = report.unverified + validation.unverified;
     print("[HLS][SUMMARY] " .. report.pass .. " PASS, " .. report.fail .. " FAIL, " .. report.unverified .. " UNVERIFIED");
     return report;
 end
@@ -230,8 +211,7 @@ function Probe.CheckTurn()
                 local status = hero.remaining == expected and "PASS" or "UNVERIFIED";
                 Log(report, "S1", status, context .. " before=" .. old.remaining .. " after=" .. hero.remaining
                     .. " turnDelta=" .. delta .. " expectedWithoutExternalChanges=" .. expected
-                    .. "; scope=observational; unseen recall with reused unit ID cannot be excluded"
-                    .. "; extension/recall/death must be checked against scenario evidence");
+                    .. "; scope=observational countdown; Run All Spikes starts a fresh baseline after manual recall");
             elseif delta ~= nil and delta > 0 then
                 Log(report, "S1", "UNVERIFIED", context .. " identity changed or exact timer unavailable");
             end
@@ -244,116 +224,55 @@ function Probe.CheckTurn()
     return report;
 end
 
--- The same ascending alive-major roster is independently validated by gameplay.
--- EFV_Dev_Gameplay.lua:663-677; PlayersVisibility reads EFV_Tracker.lua:263,289.
-function Probe.HotseatRoles()
-    local humans, ais = {}, {};
-    local ok, err = pcall(function()
-        for id = 0, 63 do
-            local player = Players[id];
-            if player and player:IsAlive() and player:IsMajor() then
-                local list = player:IsHuman() and humans or ais;
-                list[#list + 1] = id;
-            end
-        end
-    end);
-    if not ok then return nil, "roster unavailable: " .. tostring(err); end
-    if #humans ~= 3 or #ais ~= 1 then return nil, "requires exactly 3 alive major humans and 1 alive major AI"; end
-    return {human1=humans[1], human2=humans[2], human3=humans[3], ai=ais[1]};
-end
-
-function Probe.CheckVisibility()
-    local snapshot = Probe.Snapshot(); -- fresh observer, manager, claims and units on every click
-    local report = {pass=0, fail=0, unverified=0, observer=snapshot.localPlayer};
-    report.hotseat = Try(function() return GameConfiguration.IsHotseat(); end);
-    report.multiplayer = Try(function() return GameConfiguration.IsAnyMultiplayer(); end);
-    local roles, reason = Probe.HotseatRoles();
-    report.roles = roles;
-    local context = "turn=" .. tostring(snapshot.turn) .. " observer=" .. tostring(snapshot.localPlayer);
-    print("[HLS][VISIBILITY] " .. context .. " hotseat=" .. tostring(report.hotseat) .. " multiplayer=" .. tostring(report.multiplayer) .. " readOnly=true production=HLS_HeroData.Read+HLS_Presentation.Card");
-    local function Record(status, message) Log(report, "VISIBILITY", status, context .. " " .. message); end
-    local function Finish()
-        print("[HLS][SUMMARY] visibility " .. context .. " " .. report.pass .. " PASS, " .. report.fail .. " FAIL, " .. report.unverified .. " UNVERIFIED; only this observer checked; repeat on all 3 human turns");
+-- Compare fresh engine reads with the production modules on every Run All.
+-- No old unit handle or ID is reused after a manual recall.
+function Probe.RevalidateLifespans(snapshot)
+    snapshot = snapshot or Probe.Snapshot();
+    local report = {pass=0, fail=0, unverified=0, snapshot=snapshot};
+    if not snapshot.modeEnabled then
+        Log(report, "REVALIDATE", "UNVERIFIED", "Heroes & Legends disabled or unavailable");
         return report;
     end
-    if type(report.hotseat) ~= "boolean" or type(report.multiplayer) ~= "boolean" then Record("UNVERIFIED", "session metadata unavailable"); end
-    if not snapshot.modeEnabled then Record("UNVERIFIED", "Heroes & Legends disabled or unavailable"); return Finish(); end
-    if not roles then Record("UNVERIFIED", tostring(reason)); return Finish(); end
-    local observer = snapshot.localPlayer;
-    if observer ~= roles.human1 and observer ~= roles.human2 and observer ~= roles.human3 then
-        Record("UNVERIFIED", "current observer is not a configured human"); return Finish();
-    end
-    print("[HLS][VISIBILITY] " .. context .. " roles human1=" .. roles.human1 .. " human2=" .. roles.human2 .. " human3=" .. roles.human3 .. " ai=" .. roles.ai);
-    for _, err in ipairs(snapshot.errors) do Record("UNVERIFIED", "snapshot error=" .. err); end
     if HLS_HeroData == nil or HLS_Presentation == nil then
-        Record("UNVERIFIED", "production modules unavailable; enable Show Hero Lifespans"); return Finish();
+        Log(report, "REVALIDATE", "UNVERIFIED", "production modules unavailable; enable Show Hero Lifespans");
+        return report;
     end
     local manager = Try(function() return Game.GetHeroesManager(); end);
-    if not manager then Record("UNVERIFIED", "heroes manager unavailable"); return Finish(); end
-    local ids = {roles.human1, roles.human2, roles.human3};
-    local counts = {[roles.human1]=0, [roles.human2]=0, [roles.human3]=0};
-    local unmet, knownFogged = 0, 0;
-    for _, owner in ipairs(ids) do
-        if owner ~= observer then
-            local met = Try(function() return Players[observer]:GetDiplomacy():HasMet(owner); end);
-            local friend = Try(function() return Players[observer]:GetDiplomacy():HasDeclaredFriendship(owner); end);
-            local war = Try(function() return Players[observer]:GetDiplomacy():IsAtWarWith(owner); end);
-            local allied = Try(function() return Players[observer]:GetDiplomacy():HasAllied(owner); end);
-            print("[HLS][VISIBILITY] " .. context .. " relationship owner=" .. owner .. " met=" .. tostring(met) .. " friend=" .. tostring(friend) .. " war=" .. tostring(war) .. " allied=" .. tostring(allied));
-            local expectedRelation;
-            if (observer == roles.human1 and owner == roles.human2) or (observer == roles.human2 and owner == roles.human1) then expectedRelation = "friend";
-            elseif (observer == roles.human1 and owner == roles.human3) or (observer == roles.human3 and owner == roles.human1) then expectedRelation = "war";
-            else expectedRelation = "neutral"; end
-            local covered = expectedRelation == "friend" and friend == true and war == false or
-                expectedRelation == "war" and war == true and friend == false or
-                expectedRelation == "neutral" and war == false and friend == false and allied == false;
-            Record(covered and "PASS" or "UNVERIFIED", "relationshipCoverage owner=" .. owner .. " expectedFinal=" .. expectedRelation .. " covered=" .. tostring(covered) .. "; final setup is required for the complete matrix");
-            if type(met) ~= "boolean" or type(friend) ~= "boolean" or type(war) ~= "boolean" or type(allied) ~= "boolean" then
-                Record("UNVERIFIED", "relationship reads unavailable owner=" .. owner);
-            end
-        end
+    if not manager then
+        Log(report, "REVALIDATE", "UNVERIFIED", "heroes manager unavailable");
+        return report;
     end
+    local checked = 0;
     for _, raw in ipairs(snapshot.heroes) do
-        if counts[raw.owner] ~= nil and raw.state == "active" then
-            counts[raw.owner] = counts[raw.owner] + 1;
-            local prefix = "hero=" .. tostring(raw.heroClassType) .. " owner=" .. tostring(raw.owner) .. " unit=" .. tostring(raw.unitID) .. " realRemaining=" .. tostring(raw.remaining);
-            local definition = nil;
-            for row in GameInfo.HeroClasses() do if row.Index == raw.heroIndex then definition = row; break; end end
-            local actual, readError = Try(function() return HLS_HeroData.Read(definition, manager, observer); end);
+        if raw.discovered == true then
+            local definition = GameInfo.HeroClasses[raw.heroIndex];
+            local actual, readError = Try(function() return HLS_HeroData.Read(definition, manager, snapshot.localPlayer); end);
             local card, cardError = Try(function() return HLS_Presentation.Card(actual, Locale.Lookup); end);
-            local met = raw.owner == observer or Try(function() return Players[observer]:GetDiplomacy():HasMet(raw.owner); end);
-            local expectedOwner = nil;
-            if met == false then expectedOwner = Locale.Lookup("LOC_HLS_UNKNOWN_CIV"); unmet = unmet + 1;
-            elseif met == true then expectedOwner = Try(function() return Locale.Lookup(PlayerConfigurations[raw.owner]:GetPlayerName()); end); end
-            local unit = Try(function() return Players[raw.owner]:GetUnits():FindID(raw.unitID); end);
-            local visible, revealed = nil, nil;
-            if unit then
-                visible = Try(function() return PlayersVisibility[observer]:IsVisible(unit:GetX(), unit:GetY()); end);
-                revealed = Try(function() return PlayersVisibility[observer]:IsRevealed(unit:GetX(), unit:GetY()); end);
-            end
-            local details = prefix .. " met=" .. tostring(met) .. " visible=" .. tostring(visible) .. " revealed=" .. tostring(revealed) ..
-                " expectedOwner=" .. tostring(expectedOwner) .. " actualOwner=" .. tostring(card and card.ownerLabel) ..
-                " expectedTimer=" .. tostring(raw.remaining) .. " actualTimer=" .. tostring(card and card.statValue);
-            if met == true and raw.owner ~= observer and visible == false then knownFogged = knownFogged + 1; end
-            if type(visible) ~= "boolean" or type(revealed) ~= "boolean" then Record("UNVERIFIED", details .. " map visibility API unavailable"); end
-            if not HLS_Presentation.IsLifespan(raw.remaining) then
-                Record("FAIL", details .. " scope=readability expected=numeric nonnegative finite active-hero lifespan");
-            elseif not actual or not card or not expectedOwner then
-                Record("UNVERIFIED", details .. " reason=" .. tostring(readError or cardError or "required value unavailable"));
-            else
+            local context = Context(snapshot, raw) .. " state=" .. raw.state;
+            if not actual or not card then
+                Log(report, "REVALIDATE", "UNVERIFIED", context .. " error=" .. tostring(readError or cardError));
+            elseif raw.state == "active" then
                 local actualID = actual.unit and Try(function() return actual.unit:GetID(); end);
-                local good = actual.owner == raw.owner and actual.state == "active" and actualID == raw.unitID and actual.remaining == raw.remaining and
-                    actual.hasMet == met and card.ownerLabel == expectedOwner and card.statValue == tostring(raw.remaining) and card.statLabel == Locale.Lookup("LOC_HLS_TURNS_LEFT");
-                Record(good and "PASS" or "FAIL", details .. " production comparison");
+                local good = HLS_Presentation.IsLifespan(raw.remaining) and actual.owner == raw.owner
+                    and actual.state == "active" and actualID == raw.unitID and actual.remaining == raw.remaining
+                    and card.statLabel == Locale.Lookup("LOC_HLS_TURNS_LEFT") and card.statValue == tostring(raw.remaining);
+                Log(report, "REVALIDATE", good and "PASS" or "FAIL", context
+                    .. " freshUnit=" .. tostring(actualID) .. " exactProperty=" .. tostring(raw.remaining)
+                    .. " productionTimer=" .. tostring(card.statValue) .. "; compare the selected unit panel visually");
+            elseif raw.state == "fallen" or raw.state == "unclaimed" then
+                local good = HLS_Presentation.IsLifespan(raw.baseLifespan) and actual.state == raw.state
+                    and actual.baseLifespan == raw.baseLifespan and card.statValue == tostring(raw.baseLifespan)
+                    and card.statLabel == Locale.Lookup("LOC_HLS_LIFESPAN");
+                Log(report, "REVALIDATE", good and "PASS" or "FAIL", context
+                    .. " engineBase=" .. tostring(raw.baseLifespan) .. " productionLifespan=" .. tostring(card.statValue));
+            else
+                Log(report, "REVALIDATE", "UNVERIFIED", context .. " production state unavailable");
             end
+            checked = checked + 1;
         end
     end
-    for _, id in ipairs(ids) do
-        Record(counts[id] > 0 and "PASS" or "UNVERIFIED", "humanHeroCoverage owner=" .. id .. " activeHeroes=" .. counts[id] .. " expected=at least one manually recruited hero");
-    end
-    Record(unmet > 0 and "PASS" or "UNVERIFIED", "coverage unmetHumanHeroes=" .. unmet .. "; run before meeting; cannot unmeet");
-    Record(knownFogged > 0 and "PASS" or "UNVERIFIED", "coverage metHumanHeroesInFog=" .. knownFogged .. "; meeting/friendship/war never imply map visibility");
-    return Finish();
+    if checked == 0 then Log(report, "REVALIDATE", "UNVERIFIED", "no discovered hero cards to compare"); end
+    return report;
 end
 
 return HLS_Probe;

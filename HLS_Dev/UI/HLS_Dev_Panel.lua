@@ -1,6 +1,6 @@
 -- UI only: reads through HLS_Probe and sends flat synchronized dev requests.
 -- API provenance: research/devtools.md. This context never mutates gameplay.
-print("[HLS][DEV UI] loading version=0.1.1.1")
+print("[HLS][DEV UI] loading version=0.1.2.1")
 -- Keep mode-off diagnostics available when production imports are inactive.
 pcall(function() include("HLS_Presentation"); include("HLS_HeroData") end)
 include("HLS_Probe")
@@ -10,7 +10,7 @@ local m_Stamp = 0
 local m_HeroesEnabled = false
 local m_CheckerArmed = false
 local m_CheckPending = false
-local MODE_OFF_MESSAGE = "Heroes & Legends is off or unavailable. Start a new Gathering Storm game with Heroes & Legends enabled to test hero timers and visibility. Run All Spikes remains available for diagnostics."
+local MODE_OFF_MESSAGE = "Heroes & Legends is off or unavailable. Start a new Gathering Storm game with Heroes & Legends enabled to test hero timers. Run All Spikes remains available for diagnostics."
 
 local function Status(message)
   Controls.StatusLabel:SetText(message)
@@ -27,31 +27,22 @@ local function Toggle()
   SetOpen(not m_Open)
 end
 
-local function VisibilityCheck()
-  local ok, report = pcall(function() return HLS_Probe.CheckVisibility() end)
-  if not ok then Status("UNVERIFIED visibility error=" .. tostring(report)); return end
-  local r = report.roles
-  local mapping = r and (" H1=" .. r.human1 .. " H2=" .. r.human2 .. " H3=" .. r.human3 .. " AI=" .. r.ai) or ""
-  Status("Observer=" .. tostring(report.observer) .. mapping .. ". Visibility: " .. report.pass .. " PASS, " .. report.fail .. " FAIL, " .. report.unverified .. " UNVERIFIED. See Lua.log.")
-end
-
-local function Send(command)
+local function GiveFaith()
   if not m_HeroesEnabled then Status(MODE_OFF_MESSAGE); return end
-  -- Resolve the current hotseat observer for every click; never cache a player ID.
+  -- Resolve the requesting human afresh on each click.
   local playerID = Game.GetLocalPlayer()
-  local roles, reason = HLS_Probe.HotseatRoles()
-  if not roles then Status("UNVERIFIED " .. tostring(reason) .. "; no request sent"); return end
-  if playerID ~= roles.human1 and playerID ~= roles.human2 and playerID ~= roles.human3 then
-    Status("UNVERIFIED current observer is not a configured human; no request sent"); return
+  local player = Players[playerID]
+  if not player or not player:IsAlive() or not player:IsMajor() or not player:IsHuman() then
+    Status("UNVERIFIED requester must be an alive major human; no request sent"); return
   end
   m_Stamp = m_Stamp + 1
-  local parameters = {OnStart="HLS_Dev_Request", command=command, stamp=m_Stamp,
-    human1=roles.human1, human2=roles.human2, human3=roles.human3, ai=roles.ai, turn=Game.GetCurrentGameTurn()}
+  local parameters = {OnStart="HLS_Dev_Request", command="give_faith", stamp=m_Stamp,
+    turn=Game.GetCurrentGameTurn()}
   local ok, err = pcall(function()
     UI.RequestPlayerOperation(playerID, PlayerOperations.EXECUTE_SCRIPT, parameters)
   end)
-  if ok then Status("Request sent: " .. command .. ". H1=" .. roles.human1 .. " H2=" .. roles.human2 .. " H3=" .. roles.human3 .. "; check gameplay log, then Visibility Check on each human turn.")
-  else Status("UNVERIFIED request=" .. command .. " error=" .. tostring(err)) end
+  if ok then Status("Requested 1000 Faith for your player. Check your Faith balance and Lua.log.")
+  else Status("UNVERIFIED give_faith request error=" .. tostring(err)) end
 end
 local function RunAll()
   local focusMessage = "No own active hero is available to select; see the spike logs."
@@ -86,7 +77,7 @@ local function RunAll()
   if ok then
     if m_HeroesEnabled then
       if m_CheckerArmed then
-        Status("Spikes logged. " .. focusMessage .. " Turn checker armed; end two turns.")
+        Status("Spikes logged. " .. focusMessage .. " Fresh timers checked. Turn checker armed; end two turns. Run again after manual recall.")
       else
         Status("Spikes logged. UNVERIFIED: no active hero; turn checker stays off. Settle your capital, get a Monument and recruit a hero, then run again.")
       end
@@ -141,20 +132,17 @@ local function Initialize()
   ContextPtr:SetRefreshHandler(OnDeferredRefresh)
   local snapshot = HLS_Probe.Snapshot()
   m_HeroesEnabled = snapshot.modeEnabled == true
-  Controls.Meet12Button:SetDisabled(not m_HeroesEnabled)
-  Controls.RelationshipsButton:SetDisabled(not m_HeroesEnabled)
+  Controls.GiveFaithButton:SetDisabled(not m_HeroesEnabled)
   Controls.CloseButton:RegisterCallback(Mouse.eLClick, function() SetOpen(false) end)
   Controls.RunAllButton:RegisterCallback(Mouse.eLClick, RunAll)
-  Controls.VisibilityButton:RegisterCallback(Mouse.eLClick, VisibilityCheck)
-  Controls.Meet12Button:RegisterCallback(Mouse.eLClick, function() Send("meet12") end)
-  Controls.RelationshipsButton:RegisterCallback(Mouse.eLClick, function() Send("relationships") end)
+  Controls.GiveFaithButton:RegisterCallback(Mouse.eLClick, GiveFaith)
   Events.LocalPlayerTurnBegin.Add(OnTurnBegin)
   Events.GameCoreEventPublishComplete.Add(OnTurnBegin)
   Controls.OpenButton:RegisterCallback(Mouse.eLClick, Toggle)
   if not m_HeroesEnabled then
     Status(MODE_OFF_MESSAGE)
   end
-  print("[HLS][DEV UI] ready version=0.1.1.1 heroesMode=" .. tostring(m_HeroesEnabled) .. " toggle=Ctrl+Shift+D gameplayProbes=meet12,relationships preparation=manual checker=off_until_RunAll_with_active_hero")
+  print("[HLS][DEV UI] ready version=0.1.2.1 heroesMode=" .. tostring(m_HeroesEnabled) .. " toggle=Ctrl+Shift+D gameplayProbes=give_faith preparation=manual checker=off_until_RunAll_with_active_hero")
 end
 
 Initialize()

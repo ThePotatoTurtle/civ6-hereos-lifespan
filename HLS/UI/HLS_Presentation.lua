@@ -1,6 +1,6 @@
--- Show Hero Lifespans 0.1.1. Pure presentation; no engine access.
+-- Show Hero Lifespans 0.1.2. Pure presentation; no engine access.
 HLS_Presentation = {};
-HLS_Presentation.VERSION = "0.1.1";
+HLS_Presentation.VERSION = "0.1.2";
 
 function HLS_Presentation.IsLifespan(value)
     return type(value) == "number" and value >= 0 and value < math.huge;
@@ -10,26 +10,16 @@ function HLS_Presentation.IsWarning(remaining)
     return HLS_Presentation.IsLifespan(remaining) and remaining <= 5;
 end
 
-function HLS_Presentation.OwnerLabel(hero, lookup)
-    if hero.owner == -1 then return nil; end
-    if hero.isLocal or hero.hasMet then return hero.ownerName; end
-    return lookup("LOC_HLS_UNKNOWN_CIV");
-end
-
 function HLS_Presentation.Card(hero, lookup)
-    local card = {ownerLabel=HLS_Presentation.OwnerLabel(hero, lookup), warning=false};
+    local card = {warning=false};
     if hero.state == "active" then
         card.statLabel = lookup("LOC_HLS_TURNS_LEFT");
         card.statValue = HLS_Presentation.IsLifespan(hero.remaining) and tostring(hero.remaining) or lookup("LOC_HLS_UNAVAILABLE");
         card.warning = HLS_Presentation.IsWarning(hero.remaining);
-    elseif hero.state == "unclaimed" then
+    elseif hero.state == "unclaimed" or hero.state == "fallen" then
         card.statLabel = lookup("LOC_HLS_LIFESPAN");
         card.statValue = HLS_Presentation.IsLifespan(hero.baseLifespan) and tostring(hero.baseLifespan) or lookup("LOC_HLS_UNAVAILABLE");
-    elseif hero.state == "fallen" then
-        card.fallenText = lookup("LOC_HLS_FALLEN");
-        if hero.isLocal and hero.canRecall == true then
-            card.fallenText = card.fallenText .. "[NEWLINE]" .. lookup("LOC_HLS_CAN_RECALL");
-        end
+        if hero.state == "fallen" then card.fallenText = lookup("LOC_GREAT_PEOPLE_HEROES_DECEASED"); end
     else
         card.statLabel = lookup("LOC_HLS_TURNS_LEFT");
         card.statValue = lookup("LOC_HLS_UNAVAILABLE");
