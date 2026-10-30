@@ -4,7 +4,7 @@ See how many turns living heroes have left on the Heroes screen.
 
 Version 1.0.0.
 
-Install the mod on the [Steam Workshop](https://steamcommunity.com/sharedfiles/filedetails/?id=WORKSHOP_ID).
+Install the mod on the [Steam Workshop](https://steamcommunity.com/sharedfiles/filedetails/?id=3830434465).
 
 ## Features
 
