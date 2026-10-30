@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<Mod id="e8b1b318-ff13-4ef1-a9b9-5dbfd7334a1d" version="2">
+<Mod id="e8b1b318-ff13-4ef1-a9b9-5dbfd7334a1d" version="3">
   <Properties>
-    <Name>Show Hero Lifespans Spike Tools v0.1.2.1</Name>
+    <Name>Show Hero Lifespans Spike Tools v1.0.0.1</Name>
     <Teaser>Developer tools for the Show Hero Lifespans engine spikes.</Teaser>
-    <Description>Version 0.1.2.1. Testing only. Open Hero Lifespan Spikes or press Ctrl+Shift+D. Run All Spikes checks discovered hero timers and regular lifespan stats against the production display, selects an own active hero, and arms the countdown checker. Give Me 1000 Faith uses a synchronized request to add Faith only to the requesting human player. Recruit and recall heroes manually; run the diagnostics again after recall to check the fresh unit and exact timer. Requires Show Hero Lifespans, Gathering Storm, the Babylon Pack and Heroes &amp; Legends.</Description>
+    <Description>Version 1.0.0.1. Testing only. Open Hero Lifespan Spikes or press Ctrl+Shift+D. Run All Spikes checks discovered hero timers and regular lifespan stats against the production display, selects an own active hero, and arms the countdown checker. Give Me 1000 Faith uses a synchronized request to add Faith only to the requesting human player. Recruit and recall heroes manually; run the diagnostics again after recall to check the fresh unit and exact timer. Requires Show Hero Lifespans, Gathering Storm, the Babylon Pack and Heroes &amp; Legends.</Description>
     <Authors>ThePotatoTurtle</Authors>
     <AffectsSavedGames>0</AffectsSavedGames>
     <CompatibleVersions>2.0</CompatibleVersions>

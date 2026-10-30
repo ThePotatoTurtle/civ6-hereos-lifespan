@@ -1,6 +1,6 @@
--- Show Hero Lifespans 0.1.2. Pure presentation; no engine access.
+-- Show Hero Lifespans 1.0.0. Pure presentation; no engine access.
 HLS_Presentation = {};
-HLS_Presentation.VERSION = "0.1.2";
+HLS_Presentation.VERSION = "1.0.0";
 
 function HLS_Presentation.IsLifespan(value)
     return type(value) == "number" and value >= 0 and value < math.huge;

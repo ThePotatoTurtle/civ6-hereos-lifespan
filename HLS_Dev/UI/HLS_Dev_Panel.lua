@@ -1,6 +1,6 @@
 -- UI only: reads through HLS_Probe and sends flat synchronized dev requests.
 -- API provenance: research/devtools.md. This context never mutates gameplay.
-print("[HLS][DEV UI] loading version=0.1.2.1")
+print("[HLS][DEV UI] loading version=1.0.0.1")
 -- Keep mode-off diagnostics available when production imports are inactive.
 pcall(function() include("HLS_Presentation"); include("HLS_HeroData") end)
 include("HLS_Probe")
@@ -142,7 +142,7 @@ local function Initialize()
   if not m_HeroesEnabled then
     Status(MODE_OFF_MESSAGE)
   end
-  print("[HLS][DEV UI] ready version=0.1.2.1 heroesMode=" .. tostring(m_HeroesEnabled) .. " toggle=Ctrl+Shift+D gameplayProbes=give_faith preparation=manual checker=off_until_RunAll_with_active_hero")
+  print("[HLS][DEV UI] ready version=1.0.0.1 heroesMode=" .. tostring(m_HeroesEnabled) .. " toggle=Ctrl+Shift+D gameplayProbes=give_faith preparation=manual checker=off_until_RunAll_with_active_hero")
 end
 
 Initialize()

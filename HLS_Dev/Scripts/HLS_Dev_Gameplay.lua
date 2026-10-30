@@ -1,7 +1,7 @@
 -- Testing only. Gameplay mutations use synchronized EXECUTE_SCRIPT requests.
 -- Sources: BlackDeathScenario_PopupHandler.lua:21-28 and BlackDeathScenario.lua:66;
 -- BlackDeathScenario.lua:562-565 verifies GetReligion/GetFaithBalance/ChangeFaithBalance.
-local VERSION = "0.1.2.1"
+local VERSION = "1.0.0.1"
 local FAITH_AMOUNT = 1000
 
 local function Log(pid, stamp, message)

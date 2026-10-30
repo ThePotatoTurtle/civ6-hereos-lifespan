@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<Mod id="38758dbd-dc19-4bbd-8051-90dfb9d9eb72" version="2">
+<Mod id="38758dbd-dc19-4bbd-8051-90dfb9d9eb72" version="3">
   <Properties>
     <Name>Show Hero Lifespans</Name>
     <Teaser>See remaining turns for living heroes displayed in the Heroes screen.</Teaser>
-    <Description>Version 0.1.2. Shows exact remaining turns for active heroes displayed by the default Heroes screen, with a red warning at 5 turns or fewer. Keeps the default discovery and owner identity rules. Dead and unclaimed heroes retain their regular lifespan stat. Requires Gathering Storm, the Babylon Pack and Heroes &amp; Legends. Initial development build. Death and recall testing remains pending. Replaces the Heroes card Lua script; other replacements of that script may conflict.</Description>
+    <Description>Version 1.0.0. Shows exact remaining turns for active heroes displayed by the default Heroes screen, with a red warning at 5 turns or fewer. Keeps the default discovery and owner identity rules. Dead and unclaimed heroes retain their regular lifespan stat. Requires Gathering Storm, the Babylon Pack and Heroes &amp; Legends. Tested in multiplayer (hotseat). Replaces the Heroes card Lua script; other replacements of that script may conflict.</Description>
     <Authors>ThePotatoTurtle</Authors>
     <AffectsSavedGames>0</AffectsSavedGames>
     <CompatibleVersions>2.0</CompatibleVersions>
