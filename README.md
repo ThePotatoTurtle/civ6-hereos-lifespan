@@ -10,13 +10,12 @@ Install the mod on the [Steam Workshop](https://steamcommunity.com/sharedfiles/f
 
 - Living heroes show their exact turns left, in red at five turns or fewer.
 - Your active heroes come first, then other active heroes by turns left, followed by unclaimed and deceased heroes.
-- Hero discovery and owner names work as usual. Unclaimed and deceased heroes show their base lifespan, and deceased heroes keep the normal recall button.
 
 ## Compatibility
 
 - Requires Gathering Storm, the Babylon Pack and Heroes & Legends mode.
-- Tested in single-player and multiplayer hotseat.
-- This mod only reads game state. Adding and removing it from a save was tested.
+- Works in singleplayer and mutliplayer
+- This mod only reads game state; adding and removing it from a save is fine.
 - Mods that replace the Heroes card Lua script may conflict.
 
 ## Manual install
